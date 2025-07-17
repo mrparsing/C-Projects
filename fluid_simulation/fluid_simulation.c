@@ -1,0 +1,477 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <SDL2/SDL.h>
+
+/*
+ * Versione semplificata, più vicina al tuo codice iniziale,
+ * con solo le correzioni necessarie per funzionare bene:
+ *  - Array dinamico di Circle (non di int)
+ *  - Inizializzazione corretta dell'array
+ *  - Uso di e.button.x / e.button.y
+ *  - Disegno cerchio "naive" (loop su bounding box + distanza^2)
+ *  - Lock/Unlock surface dove serve
+ *  - Stampa di TUTTI i cerchi alla fine (dopo che chiudi la finestra)
+ */
+
+#define WIDTH 900
+#define HEIGHT 600
+#define GRAVITY 800.0 /* pixel per secondo^2, sperimenta: 500-1200 */
+#define COLOR_BLACK 0xFF000000
+#define REST_SIDE 0.7
+#define REST_BALL 0.6 /* coefficiente di rimbalzo cerchio-cerchio */
+
+/* -------------------- Struttura cerchio -------------------- */
+typedef struct
+{
+    double x;
+    double y;
+    double r;
+    double vy; // velocità verticale in pixel/sec
+    double vx;
+} Circle;
+
+/* -------------------- Array dinamico di cerchi -------------------- */
+typedef struct
+{
+    Circle *array;
+    size_t used;
+    size_t size;
+} CircleArray;
+
+typedef struct
+{
+    double x;
+    double y;
+    double r;
+} Quad;
+
+typedef struct
+{
+    Quad *array;
+    size_t used;
+    size_t size;
+} QuadArray;
+
+void initCircleArray(CircleArray *a, size_t initialSize)
+{
+    a->array = (Circle *)malloc(initialSize * sizeof(Circle));
+    a->used = 0;
+    a->size = initialSize;
+}
+
+void initQuadArray(QuadArray *a, size_t initialSize)
+{
+    a->array = (Quad *)malloc(initialSize * sizeof(Quad));
+    a->used = 0;
+    a->size = initialSize;
+}
+
+void insertCircle(CircleArray *a, Circle c)
+{
+    if (a->used == a->size)
+    {
+        a->size *= 2;
+        Circle *tmp = (Circle *)realloc(a->array, a->size * sizeof(Circle));
+        if (!tmp)
+        {
+            fprintf(stderr, "realloc fallita\n");
+            return; /* lascio l'array com'era; in caso reale gestisci meglio */
+        }
+        a->array = tmp;
+    }
+    a->array[a->used++] = c;
+}
+
+void insertQuad(QuadArray *a, Quad c)
+{
+    if (a->used == a->size)
+    {
+        a->size *= 2;
+        Quad *tmp = (Quad *)realloc(a->array, a->size * sizeof(Quad));
+        if (!tmp)
+        {
+            fprintf(stderr, "realloc fallita\n");
+            return; /* lascio l'array com'era; in caso reale gestisci meglio */
+        }
+        a->array = tmp;
+    }
+    a->array[a->used++] = c;
+}
+
+void freeCircleArray(CircleArray *a)
+{
+    free(a->array);
+    a->array = NULL;
+    a->used = a->size = 0;
+}
+
+void freeQuadArray(QuadArray *a)
+{
+    free(a->array);
+    a->array = NULL;
+    a->used = a->size = 0;
+}
+
+/* -------------------- Disegno cerchio riempito -------------------- */
+static void FillCircle(SDL_Surface *surface, Circle circle, Uint32 color)
+{
+    /* Limiti interi del bounding box del cerchio */
+    int minx = (int)(circle.x - circle.r);
+    int maxx = (int)(circle.x + circle.r);
+    int miny = (int)(circle.y - circle.r);
+    int maxy = (int)(circle.y + circle.r);
+
+    double r2 = circle.r * circle.r; /* raggio^2 */
+
+    if (SDL_MUSTLOCK(surface))
+        SDL_LockSurface(surface);
+
+    /* Dati superficie */
+    Uint8 *pixels = (Uint8 *)surface->pixels;
+    int pitch = surface->pitch;               /* bytes per riga */
+    int bpp = surface->format->BytesPerPixel; /* dovrebbe essere 4 nella maggior parte dei casi */
+
+    for (int y = miny; y <= maxy; ++y)
+    {
+        for (int x = minx; x <= maxx; ++x)
+        {
+            /* Check bounds */
+            if (x < 0 || x >= surface->w || y < 0 || y >= surface->h)
+                continue;
+            /* Distanza dal centro */
+            double dx = x - circle.x;
+            double dy = y - circle.y;
+            if (dx * dx + dy * dy <= r2)
+            {
+                /* scrivi pixel */
+                Uint8 *p = pixels + y * pitch + x * bpp;
+                *(Uint32 *)p = color;
+            }
+        }
+    }
+
+    if (SDL_MUSTLOCK(surface))
+        SDL_UnlockSurface(surface);
+}
+
+static void FillQuad(SDL_Surface *surface, Quad quad, Uint32 color)
+{
+    if (SDL_MUSTLOCK(surface))
+        SDL_LockSurface(surface);
+    SDL_Rect r;
+    r.x = (int)(quad.x - quad.r);
+    r.y = (int)(quad.y - quad.r);
+    r.w = (int)(quad.r * 2);
+    r.h = (int)(quad.r * 2);
+    /* Clip manuale se vuoi essere super-sicuro (SDL_FillRect già clippera) */
+    SDL_FillRect(surface, &r, color);
+    if (SDL_MUSTLOCK(surface))
+        SDL_UnlockSurface(surface);
+}
+
+static void resolveCircleQuad(Circle *c, const Quad *q)
+{
+    double left = q->x - q->r;
+    double right = q->x + q->r;
+    double top = q->y - q->r;
+    double bottom = q->y + q->r;
+
+    /* punto più vicino del rettangolo al centro del cerchio */
+    double closestX = c->x < left ? left : (c->x > right ? right : c->x);
+    double closestY = c->y < top ? top : (c->y > bottom ? bottom : c->y);
+
+    double dx = c->x - closestX;
+    double dy = c->y - closestY;
+    double dist2 = dx * dx + dy * dy;
+
+    if (dist2 > c->r * c->r)
+        return; /* no collisione */
+
+    double dist = sqrt(dist2);
+    double nx, ny;
+
+    if (dist > 1e-8)
+    {
+        /* normale dalla superficie verso il centro del cerchio */
+        nx = dx / dist;
+        ny = dy / dist;
+        /* correzione penetrazione */
+        double penetration = c->r - dist;
+        c->x += nx * penetration;
+        c->y += ny * penetration;
+    }
+    else
+    {
+        /* centro dentro il rettangolo (dist=0): spingi verso lato più vicino */
+        double dl = fabs(c->x - left);
+        double dr = fabs(right - c->x);
+        double dt = fabs(c->y - top);
+        double db = fabs(bottom - c->y);
+        double m = fmin(fmin(dl, dr), fmin(dt, db));
+        if (m == dl)
+        {
+            nx = -1;
+            ny = 0;
+            c->x = left - 1e-6 + c->r;
+        }
+        else if (m == dr)
+        {
+            nx = 1;
+            ny = 0;
+            c->x = right + 1e-6 - c->r;
+        }
+        else if (m == dt)
+        {
+            nx = 0;
+            ny = -1;
+            c->y = top - 1e-6 + c->r;
+        }
+        else
+        {
+            nx = 0;
+            ny = 1;
+            c->y = bottom + 1e-6 - c->r;
+        }
+    }
+
+    /* riflessione velocità (rimbalzo) */
+    double vn = c->vx * nx + c->vy * ny;
+    if (vn < 0.0)
+    {
+        double bounce = -(1.0 + REST_SIDE) * vn; /* coeff. restituzione */
+        c->vx += nx * bounce;
+        c->vy += ny * bounce;
+    }
+}
+
+int main(void)
+{
+    if (SDL_Init(SDL_INIT_VIDEO) != 0)
+    {
+        fprintf(stderr, "SDL_Init error: %s\n", SDL_GetError());
+        return 1;
+    }
+
+    SDL_Window *window = SDL_CreateWindow(
+        "Fluid Simulation",
+        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        WIDTH, HEIGHT,
+        SDL_WINDOW_SHOWN);
+
+    SDL_Surface *surface = SDL_GetWindowSurface(window);
+
+    /* Colori: ricavo il bianco nel formato del surface */
+    Uint32 COLOR_WHITE = SDL_MapRGB(surface->format, 255, 255, 255);
+
+    /* Inizializza array cerchi */
+    CircleArray circles;
+    initCircleArray(&circles, 16);
+
+    /* Inizializza array quad */
+    QuadArray quad;
+    initQuadArray(&quad, 16);
+
+    int running = 1;
+    int mouseDown = 0;
+    int wall = 0;
+    double spawn_ball_accum = 0.0;
+    double spawn_wall_accum = 0.0;
+    const double spawn_interval = 0.05; // crea ~20 palline al secondo mentre tieni premuto
+    SDL_Event e;
+
+    Uint32 prev_ticks = SDL_GetTicks(); // ms from SDL init
+    while (running)
+    {
+        Uint32 now = SDL_GetTicks();
+        double dt = (now - prev_ticks) / 1000.0; // in secondi
+        prev_ticks = now;
+        while (SDL_PollEvent(&e))
+        {
+            if (e.type == SDL_QUIT)
+            {
+                running = 0;
+            }
+            else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT)
+            {
+                mouseDown = 1;
+                Circle c = {e.button.x, e.button.y, 10.0, 0.0, 0.0};
+                insertCircle(&circles, c);
+                FillCircle(surface, c, COLOR_WHITE);
+            }
+            else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT)
+            {
+                mouseDown = 0;
+            }
+            else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_RIGHT)
+            {
+                wall = 1;
+                Quad q = {e.button.x, e.button.y, 10.0};
+                insertQuad(&quad, q);
+                FillQuad(surface, q, COLOR_WHITE);
+            }
+            else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_RIGHT)
+            {
+                wall = 0;
+            }
+
+            if (mouseDown)
+            {
+                spawn_ball_accum += dt;
+                while (spawn_ball_accum >= spawn_interval)
+                {
+                    spawn_ball_accum -= spawn_interval;
+                    int mx, my;
+                    SDL_GetMouseState(&mx, &my);
+                    Circle c = {mx, my, 10.0, 0.0, 0.0};
+                    insertCircle(&circles, c);
+                }
+            }
+            else
+            {
+                spawn_ball_accum = 0.0; // reset quando rilasci
+            }
+
+            if (wall)
+            {
+                spawn_wall_accum += dt;
+                while (spawn_wall_accum >= spawn_interval)
+                {
+                    spawn_wall_accum -= spawn_interval;
+                    int mx, my;
+                    SDL_GetMouseState(&mx, &my);
+                    Quad q = {mx, my, 10.0};
+                    insertQuad(&quad, q);
+                }
+            }
+            else
+            {
+                spawn_wall_accum = 0.0; // reset quando rilasci
+            }
+        }
+        for (size_t i = 0; i < circles.used; ++i)
+        {
+            circles.array[i].vy += GRAVITY * dt;            // accelera verso il basso
+            circles.array[i].y += circles.array[i].vy * dt; // avanza posizione
+
+            circles.array[i].vx += 0.0 * dt;
+            circles.array[i].x += circles.array[i].vx * dt;
+        }
+
+        SDL_FillRect(surface, NULL, COLOR_BLACK); // clear
+                                                  /* collisioni cerchio-muro */
+        for (size_t i = 0; i < circles.used; ++i)
+        {
+            for (size_t q = 0; q < quad.used; ++q)
+            {
+                resolveCircleQuad(&circles.array[i], &quad.array[q]);
+            }
+        }
+        for (size_t i = 0; i < quad.used; ++i)
+        {
+            FillQuad(surface, quad.array[i], COLOR_WHITE);
+        }
+        for (size_t i = 0; i < circles.used; ++i)
+        {
+            FillCircle(surface, circles.array[i], COLOR_WHITE);
+
+            // COLLISIONI PAVIMENTO
+            if (circles.array[i].y + circles.array[i].r >= HEIGHT)
+            {
+                circles.array[i].y = HEIGHT - circles.array[i].r;
+                circles.array[i].vy = -circles.array[i].vy * 0.7; // 70% energia
+                if (fabs(circles.array[i].vy) < 5.0)
+                    circles.array[i].vy = 0.0; // ferma se molto lento
+            }
+
+            // PARETE SINISTRA
+            if (circles.array[i].x - circles.array[i].r < 0)
+            {
+                circles.array[i].x = circles.array[i].r;
+                circles.array[i].vx = -circles.array[i].vx * REST_SIDE;
+            }
+
+            // PARETE DESTRA
+            if (circles.array[i].x + circles.array[i].r >= WIDTH)
+            {
+                circles.array[i].x = WIDTH - circles.array[i].r;
+                circles.array[i].vx = -circles.array[i].vx * REST_SIDE;
+            }
+
+            for (size_t i = 0; i < circles.used; ++i)
+            {
+                for (size_t j = i + 1; j < circles.used; ++j)
+                {
+
+                    double dx = circles.array[j].x - circles.array[i].x;
+                    double dy = circles.array[j].y - circles.array[i].y;
+                    double minDist = circles.array[i].r + circles.array[j].r;
+                    double dist2 = dx * dx + dy * dy;
+
+                    if (dist2 >= minDist * minDist)
+                    {
+                        continue; // non si toccano
+                    }
+
+                    double dist = sqrt(dist2);
+
+                    /* normale di contatto */
+                    double nx, ny;
+                    if (dist > 0.0)
+                    {
+                        nx = dx / dist;
+                        ny = dy / dist;
+                    }
+                    else
+                    {
+                        /* stessa posizione: scegli una normale arbitraria */
+                        nx = 1.0;
+                        ny = 0.0;
+                        dist = 0.0;
+                    }
+
+                    /* correzione penetrazione: spingi metà a ciascuno */
+                    double penetration = minDist - dist;
+                    double half = penetration * 0.5;
+                    circles.array[i].x -= nx * half;
+                    circles.array[i].y -= ny * half;
+                    circles.array[j].x += nx * half;
+                    circles.array[j].y += ny * half;
+
+                    /* risposta velocità (masse uguali = 1,1) */
+                    double rvx = circles.array[j].vx - circles.array[i].vx;
+                    double rvy = circles.array[j].vy - circles.array[i].vy;
+                    double vn = rvx * nx + rvy * ny; // velocità relativa lungo la normale
+
+                    if (vn > 0.0)
+                    {
+                        continue; // si stanno già allontanando
+                    }
+
+                    double jimp = -(1.0 + REST_BALL) * vn / 2.0; // / (1/m1 + 1/m2) = /2
+
+                    circles.array[i].vx -= jimp * nx;
+                    circles.array[i].vy -= jimp * ny;
+                    circles.array[j].vx += jimp * nx;
+                    circles.array[j].vy += jimp * ny;
+                }
+            }
+        }
+
+        /* Aggiorna finestra (disegno cumulativo, non pulisco lo schermo) */
+        SDL_UpdateWindowSurface(window);
+        SDL_Delay(10);
+    }
+
+    /* Stampo i cerchi raccolti */
+    printf("Hai creato %zu cerchi:\n", circles.used);
+    for (size_t i = 0; i < circles.used; ++i)
+    {
+        printf("[%zu] x=%.2f y=%.2f r=%.2f\n", i, circles.array[i].x, circles.array[i].y, circles.array[i].r);
+    }
+
+    freeCircleArray(&circles);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    return 0;
+}
