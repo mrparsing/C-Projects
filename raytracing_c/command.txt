@@ -1,0 +1,3 @@
+To compile:
+
+clang raytracing.c -I$(brew --prefix)/include -L$(brew --prefix)/lib -lSDL2 -o raytracing
