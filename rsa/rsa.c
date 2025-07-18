@@ -9,13 +9,14 @@ void mcd(mpz_t result, const mpz_t a, const mpz_t b) {
     mpz_init_set(y, b);
     mpz_init(temp);
 
+    // Loop until y becomes 0
     while (mpz_cmp_ui(y, 0) != 0) {
         mpz_set(temp, y);
-        mpz_mod(y, x, y);
+        mpz_mod(y, x, y); // x % y
         mpz_set(x, temp);
     }
 
-    mpz_set(result, x);
+    mpz_set(result, x); // GCD is stored in x
 
     mpz_clear(x);
     mpz_clear(y);
@@ -32,8 +33,9 @@ bool inverso_modulare(mpz_t result, const mpz_t e, const mpz_t m) {
     mpz_set_ui(t, 0);
     mpz_set_ui(new_t, 1);
 
+    // Extended Euclidean algorithm loop
     while (mpz_cmp_ui(new_r, 0) != 0) {
-        mpz_fdiv_q(q, r, new_r);
+        mpz_fdiv_q(q, r, new_r); // q = r / new_r
 
         mpz_mul(temp, q, new_t);
         mpz_sub(temp, t, temp);
@@ -46,16 +48,18 @@ bool inverso_modulare(mpz_t result, const mpz_t e, const mpz_t m) {
         mpz_set(new_r, temp);
     }
 
+    // If GCD != 1, modular inverse doesn't exist
     if (mpz_cmp_ui(r, 1) > 0) {
         mpz_clears(r, new_r, t, new_t, q, temp, NULL);
         return false;
     }
 
+    // Ensure result is positive
     if (mpz_sgn(t) < 0) {
         mpz_add(t, t, m);
     }
 
-    mpz_set(result, t);
+    mpz_set(result, t); // Set result
 
     mpz_clears(r, new_r, t, new_t, q, temp, NULL);
     return true;
@@ -75,10 +79,12 @@ int main() {
     mpz_t p, q, n, phi_n, p_minus_1, q_minus_1;
     mpz_inits(p, q, n, phi_n, p_minus_1, q_minus_1, NULL);
 
+    // Initialize RNG
     gmp_randstate_t stato;
     gmp_randinit_mt(stato);
     gmp_randseed_ui(stato, 1234);
 
+    // Generate two random 64-bit primes
     mpz_urandomb(p, stato, 64);
     mpz_urandomb(q, stato, 64);
     mpz_nextprime(p, p);
@@ -86,8 +92,10 @@ int main() {
 
     gmp_printf("Generated primes:\np = %Zd\nq = %Zd\n", p, q);
 
+    // Compute n = p * q
     mpz_mul(n, p, q);
 
+    // Compute phi(n) = (p - 1)(q - 1)
     mpz_sub_ui(p_minus_1, p, 1);
     mpz_sub_ui(q_minus_1, q, 1);
     mpz_mul(phi_n, p_minus_1, q_minus_1);
@@ -95,9 +103,11 @@ int main() {
     gmp_printf("Modulus n = %Zd\n", n);
     gmp_printf("Euler's totient phi(n) = %Zd\n", phi_n);
 
+    // Set public exponent e = 65537
     mpz_t e;
     mpz_init_set_ui(e, 65537);
 
+    // Check if e and phi(n) are coprime
     mpz_t gcd;
     mpz_init(gcd);
     mpz_gcd(gcd, e, phi_n);
@@ -107,6 +117,7 @@ int main() {
         return 1;
     }
 
+    // Compute private key d = e^(-1) mod phi(n)
     mpz_t d;
     mpz_init(d);
 
@@ -118,27 +129,30 @@ int main() {
     gmp_printf("Public key (e, n): (%Zd, %Zd)\n", e, n);
     gmp_printf("Private key (d, n): (%Zd, %Zd)\n", d, n);
 
-    // User input
+    // User input for message
     char input_str[1024];
     printf("Enter a message (as a number < n): ");
     scanf("%1023s", input_str);
 
     mpz_t message, ciphertext, decrypted;
     mpz_inits(message, ciphertext, decrypted, NULL);
-    mpz_set_str(message, input_str, 10);
+    mpz_set_str(message, input_str, 10); // Convert string to mpz_t
 
+    // Check message is less than n
     if (mpz_cmp(message, n) >= 0) {
         printf("ERROR: message must be smaller than n\n");
         return 1;
     }
 
+    // Encrypt message
     rsa_encrypt(ciphertext, message, e, n);
     gmp_printf("Encrypted ciphertext: %Zd\n", ciphertext);
 
+    // Decrypt ciphertext
     rsa_decrypt(decrypted, ciphertext, d, n);
     gmp_printf("Decrypted message: %Zd\n", decrypted);
 
-    // Clear memory
+    // Free all allocated memory
     mpz_clears(p, q, n, phi_n, p_minus_1, q_minus_1, e, d, gcd, message, ciphertext, decrypted, NULL);
     gmp_randclear(stato);
 

@@ -23,7 +23,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 
 ### ⭐☆☆ Easy
 
-- *(Coming soon...)*
+- **[RSA Encryption and Decryption with GMP](./rsa/)** — RSA implementation using C and the GMP library for handling big numbers.
 
 ---
 
