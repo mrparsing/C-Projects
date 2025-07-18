@@ -25,12 +25,14 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 
 - **[RSA Encryption and Decryption with GMP](./rsa/)** — RSA implementation using C and the GMP library for handling big numbers.
 - **[RC4 Stream Cipher](./rc4/)** — Implementation of the RC4 encryption algorithm.
+**[MD5 Implementation](./md5/)** — Implementation of the MD5 algorithm.
 
 ---
 
 ### ⭐⭐☆ Medium
 
 - **[Raytracer 2D (SDL2)](./raytracing/)** — A simple 2D raytracer that visualizes light interacting with a circle.
+- **[Pong game](./pong_game/)** — A simple two–player Pong clone in C using **SDL2** and **SDL\_ttf**, with a basic victory screen. 
 
 ---
 
