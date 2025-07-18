@@ -36,3 +36,11 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 ### ⭐⭐⭐ Advanced
 
 - *(Coming soon...)*
+
+---
+
+# 🚧 Work in Progress
+
+This repository is a work in progress. New projects will be added over time.
+
+Feel free to open an issue or pull request if you want to contribute, suggest ideas, or report bugs.
