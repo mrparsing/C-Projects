@@ -25,7 +25,8 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 
 - **[RSA Encryption and Decryption with GMP](./rsa/)** — RSA implementation using C and the GMP library for handling big numbers.
 - **[RC4 Stream Cipher](./rc4/)** — Implementation of the RC4 encryption algorithm.
-**[MD5 Implementation](./md5/)** — Implementation of the MD5 algorithm.
+- **[MD5 Implementation](./md5/)** — Implementation of the MD5 algorithm.
+- **[Linux Keylogger](./linux_keylogger/)** — A minimal C program that reads **raw key press events** from the Linux *evdev* interface.
 
 ---
 
