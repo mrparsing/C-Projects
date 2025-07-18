@@ -19,6 +19,20 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 
 > ⭐☆☆ = Easy — ⭐⭐☆ = Medium — ⭐⭐⭐ = Advanced
 
-| Project                    | Description                                                       | Difficulty | Link                           |
-|----------------------------|-------------------------------------------------------------------|------------|--------------------------------|
-| **Raytracer 2D (SDL2)**    | A simple 2D raytracer that visualizes light interacting with a circle. | ⭐⭐☆        | [`raytracer-2d`](./raytracing/) |
+---
+
+### ⭐☆☆ Easy
+
+- *(Coming soon...)*
+
+---
+
+### ⭐⭐☆ Medium
+
+- **[Raytracer 2D (SDL2)](./raytracing/)** — A simple 2D raytracer that visualizes light interacting with a circle.
+
+---
+
+### ⭐⭐⭐ Advanced
+
+- *(Coming soon...)*
