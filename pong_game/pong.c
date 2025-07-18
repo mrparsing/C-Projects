@@ -20,7 +20,7 @@
 #define HEIGHT 600
 
 #define MOVEMENT 200.0      /* paddle speed (px/s)          */
-#define BALL_MOVEMENT 300.0 /* initial ball speed (px/s)    */
+#define BALL_MOVEMENT 350.0 /* initial ball speed (px/s)    */
 
 #define COLOR_BLACK 0xFF000000 /* packed ARGB for SDL_Surface  */
 #define MAX_ANGLE 0.509        /* max exit angle ≈ 29° (rad)   */
@@ -50,7 +50,7 @@ static void FillQuad(SDL_Surface *s, Wall w, Uint32 color)
     if (SDL_MUSTLOCK(s))
         SDL_LockSurface(s);
 
-    SDL_Rect rect = {(int)w.x, (int)w.y, 20, 150};
+    SDL_Rect rect = {(int)w.x, (int)w.y, 20, 100};
     SDL_FillRect(s, &rect, color);
 
     if (SDL_MUSTLOCK(s))
@@ -80,8 +80,8 @@ static void FillCircle(SDL_Surface *s, Circle c, Uint32 color)
 static inline void moveDown(Wall *w, double dt)
 {
     w->y += MOVEMENT * dt;
-    if (w->y + 150 > HEIGHT)
-        w->y = HEIGHT - 150;
+    if (w->y + 100 > HEIGHT)
+        w->y = HEIGHT - 100;
 }
 static inline void moveUp(Wall *w, double dt)
 {
@@ -113,9 +113,9 @@ static void checkCollision(Circle *c, Wall *L, Wall *R)
 {
     /* paddle left */
     if (c->x - c->r <= L->x + 20 && c->x + c->r >= L->x &&
-        c->y + c->r >= L->y && c->y - c->r <= L->y + 150)
+        c->y + c->r >= L->y && c->y - c->r <= L->y + 100)
     {
-        double offset = (c->y - (L->y + 75.0)) / 75.0; /* −1 … +1 */
+        double offset = (c->y - (L->y + 50.0)) / 50.0; /* −1 … +1 */
         offset = fmax(-1.0, fmin(1.0, offset));
         double angle = offset * MAX_ANGLE;
         double speed = hypot(c->vx, c->vy);
@@ -125,9 +125,9 @@ static void checkCollision(Circle *c, Wall *L, Wall *R)
     }
     /* paddle right */
     else if (c->x + c->r >= R->x && c->x - c->r <= R->x + 20 &&
-             c->y + c->r >= R->y && c->y - c->r <= R->y + 150)
+             c->y + c->r >= R->y && c->y - c->r <= R->y + 100)
     {
-        double offset = (c->y - (R->y + 75.0)) / 75.0;
+        double offset = (c->y - (R->y + 50.0)) / 50.0;
         offset = fmax(-1.0, fmin(1.0, offset));
         double angle = offset * MAX_ANGLE;
         double speed = hypot(c->vx, c->vy);
@@ -145,7 +145,7 @@ static void resetGame(Circle *c, Wall *L, Wall *R)
     c->vx = BALL_MOVEMENT;
     c->vy = 0.0;
 
-    L->y = R->y = (HEIGHT - 150) / 2.0;
+    L->y = R->y = (HEIGHT - 100) / 2.0;
 }
 
 /* ---------- Main ---------- */
