@@ -2,7 +2,7 @@
 
 ## 🎬 Demo
 
-![Demo](../assets/gif.gif)
+![Demo](../assets/raytracing.gif)
 
 ## 0. What We Want to Build
 
