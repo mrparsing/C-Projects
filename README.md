@@ -42,7 +42,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 
 ### ⭐⭐⭐ Advanced
 
-- *(Coming soon...)*
+- **[Ball gravity simulation](./ball_gravity_simulation/)** — An **interactive particle sandbox**: balls fall, collide with each other (elastic-ish with restitution), bounce on walls/floor, and resolve penetration against obstacles.
 
 ---
 
