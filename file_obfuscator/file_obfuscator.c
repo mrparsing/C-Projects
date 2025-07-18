@@ -14,7 +14,7 @@ int transform(int c, const char *mode, int key) {
 
 int main(int argc, char *argv[]) {
     if (argc < 4) {
-        fprintf(stderr, "Uso:\n");
+        fprintf(stderr, "Usage:\n");
         fprintf(stderr, "  %s not input.txt output.txt\n", argv[0]);
         fprintf(stderr, "  %s xor <key> input.txt output.txt\n", argv[0]);
         return 1;
@@ -33,19 +33,19 @@ int main(int argc, char *argv[]) {
         input_file = argv[3];
         output_file = argv[4];
     } else {
-        fprintf(stderr, "Argomenti non validi.\n");
+        fprintf(stderr, "Invalid arguments.\n");
         return 1;
     }
 
     FILE *in = fopen(input_file, "rb");
     if (!in) {
-        perror("Errore apertura input");
+        perror("Error opening input");
         return 1;
     }
 
     FILE *out = fopen(output_file, "wb");
     if (!out) {
-        perror("Errore apertura output");
+        perror("Error opening output");
         fclose(in);
         return 1;
     }

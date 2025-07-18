@@ -14,7 +14,7 @@
 
 static int fd = -1;
 
-/* Scorciatoia: prima tastiera trovata in /dev/input/by-path */
+/* Shortcut: first keyboard found in /dev/input/by-path */
 static const char *find_keyboard_by_path(void)
 {
     static char result[PATH_MAX] = {0};
@@ -25,7 +25,7 @@ static const char *find_keyboard_by_path(void)
     {
         strncpy(result, g.gl_pathv[0], sizeof(result) - 1);
         globfree(&g);
-        return result; /* symlink stabile alla tastiera */
+        return result; /* stable symlink to the keyboard */
     }
     globfree(&g);
     return NULL;
@@ -46,11 +46,11 @@ int main(void)
     if (!device)
     {
         fprintf(stderr,
-                "Nessuna tastiera trovata in /dev/input/by-path/*-event-kbd\n");
+                "No keyboard found in /dev/input/by-path/*-event-kbd\n");
         return EXIT_FAILURE;
     }
 
-    printf("Uso device: %s\n", device);
+    printf("Device: %s\n", device);
 
     fd = open(device, O_RDONLY);
     if (fd < 0)
@@ -59,7 +59,7 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    /* Gestisco Ctrl-C */
+    /* Handle Ctrl-C */
     struct sigaction sa = {.sa_handler = handle_sigint, .sa_flags = SA_RESTART};
     sigemptyset(&sa.sa_mask);
     sigaction(SIGINT, &sa, NULL);
@@ -71,7 +71,7 @@ int main(void)
         if (bytes < 0)
         {
             if (errno == EINTR)
-                continue; /* interrotto da segnale */
+                continue; /* interrupted by signal */
             perror("read");
             break;
         }

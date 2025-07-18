@@ -27,6 +27,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[RC4 Stream Cipher](./rc4/)** — Implementation of the RC4 encryption algorithm.
 - **[MD5 Implementation](./md5/)** — Implementation of the MD5 algorithm.
 - **[Linux Keylogger](./linux_keylogger/)** — A minimal C program that reads **raw key press events** from the Linux *evdev* interface.
+- **[File Obfuscator](./file_obfuscator/)** — A C utility that applies a **bitwise NOT** or a **byte-wise XOR** to the contents of a file and writes the transformed bytes to an output file.
 
 ---
 
