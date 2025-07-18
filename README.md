@@ -24,6 +24,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 ### ⭐☆☆ Easy
 
 - **[RSA Encryption and Decryption with GMP](./rsa/)** — RSA implementation using C and the GMP library for handling big numbers.
+- **[RC4 Stream Cipher](./rc4/)** — Implementation of the RC4 encryption algorithm.
 
 ---
 
