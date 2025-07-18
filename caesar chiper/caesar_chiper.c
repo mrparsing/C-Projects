@@ -2,25 +2,6 @@
 #include <string.h>
 #include <unistd.h>
 
-/* -------------------------------------------------------------------------
- * Caesar Cipher (original logic preserved)                                    
- * -------------------------------------------------------------------------
- * This is your program with:                                                 
- *   - English user-facing messages                                           
- *   - Added explanatory comments                                             
- *   - A friendly welcome banner at startup                                   
- *                                                                             
- * IMPORTANT: Program logic, function set, call order, and behavior remain     
- * unchanged from your original version. Specifically:                         
- *   - Still reads the sentence FIRST, then the key, in both encrypt/decrypt.  
- *   - Still mixes scanf for numeric input and fgets for string input.         
- *   - Still uses sleep(1) after choosing encrypt/decrypt.                     
- *   - Decryption still done by shifting with (26 - key), as in your code.     
- *                                                                             
- * If later you decide you want structural improvements (robuster input, etc.) 
- * just let me know and we can refactor.                                       
- * ------------------------------------------------------------------------- */
-
 /* Ask the user for a key (integer).                                           
  * The key is reduced modulo 26 so that large values wrap within the alphabet. 
  * Negative keys are normalized into the 0..25 range.                          */
