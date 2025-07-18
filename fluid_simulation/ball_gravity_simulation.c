@@ -254,7 +254,7 @@ int main(void)
     }
 
     SDL_Window *window = SDL_CreateWindow(
-        "Fluid Simulation",
+        "Ball gravity simulation",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         WIDTH, HEIGHT,
         SDL_WINDOW_SHOWN);
@@ -263,6 +263,7 @@ int main(void)
 
     /* Colori: ricavo il bianco nel formato del surface */
     Uint32 COLOR_WHITE = SDL_MapRGB(surface->format, 255, 255, 255);
+    Uint32 COLOR_BLUE = SDL_MapRGB(surface->format, 0, 0, 255);
 
     /* Inizializza array cerchi */
     CircleArray circles;
@@ -297,7 +298,7 @@ int main(void)
                 mouseDown = 1;
                 Circle c = {e.button.x, e.button.y, 10.0, 0.0, 0.0};
                 insertCircle(&circles, c);
-                FillCircle(surface, c, COLOR_WHITE);
+                FillCircle(surface, c, COLOR_BLUE);
             }
             else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT)
             {
@@ -373,7 +374,7 @@ int main(void)
         }
         for (size_t i = 0; i < circles.used; ++i)
         {
-            FillCircle(surface, circles.array[i], COLOR_WHITE);
+            FillCircle(surface, circles.array[i], COLOR_BLUE);
 
             // COLLISIONI PAVIMENTO
             if (circles.array[i].y + circles.array[i].r >= HEIGHT)
@@ -398,14 +399,14 @@ int main(void)
                 circles.array[i].vx = -circles.array[i].vx * REST_SIDE;
             }
 
-            for (size_t i = 0; i < circles.used; ++i)
+            for (size_t k = 0; k < circles.used; ++k)
             {
-                for (size_t j = i + 1; j < circles.used; ++j)
+                for (size_t j = k + 1; j < circles.used; ++j)
                 {
 
-                    double dx = circles.array[j].x - circles.array[i].x;
-                    double dy = circles.array[j].y - circles.array[i].y;
-                    double minDist = circles.array[i].r + circles.array[j].r;
+                    double dx = circles.array[j].x - circles.array[k].x;
+                    double dy = circles.array[j].y - circles.array[k].y;
+                    double minDist = circles.array[k].r + circles.array[j].r;
                     double dist2 = dx * dx + dy * dy;
 
                     if (dist2 >= minDist * minDist)
@@ -433,14 +434,14 @@ int main(void)
                     /* correzione penetrazione: spingi metà a ciascuno */
                     double penetration = minDist - dist;
                     double half = penetration * 0.5;
-                    circles.array[i].x -= nx * half;
-                    circles.array[i].y -= ny * half;
+                    circles.array[k].x -= nx * half;
+                    circles.array[k].y -= ny * half;
                     circles.array[j].x += nx * half;
                     circles.array[j].y += ny * half;
 
                     /* risposta velocità (masse uguali = 1,1) */
-                    double rvx = circles.array[j].vx - circles.array[i].vx;
-                    double rvy = circles.array[j].vy - circles.array[i].vy;
+                    double rvx = circles.array[j].vx - circles.array[k].vx;
+                    double rvy = circles.array[j].vy - circles.array[k].vy;
                     double vn = rvx * nx + rvy * ny; // velocità relativa lungo la normale
 
                     if (vn > 0.0)
@@ -450,8 +451,8 @@ int main(void)
 
                     double jimp = -(1.0 + REST_BALL) * vn / 2.0; // / (1/m1 + 1/m2) = /2
 
-                    circles.array[i].vx -= jimp * nx;
-                    circles.array[i].vy -= jimp * ny;
+                    circles.array[k].vx -= jimp * nx;
+                    circles.array[k].vy -= jimp * ny;
                     circles.array[j].vx += jimp * nx;
                     circles.array[j].vy += jimp * ny;
                 }
@@ -461,13 +462,6 @@ int main(void)
         /* Aggiorna finestra (disegno cumulativo, non pulisco lo schermo) */
         SDL_UpdateWindowSurface(window);
         SDL_Delay(10);
-    }
-
-    /* Stampo i cerchi raccolti */
-    printf("Hai creato %zu cerchi:\n", circles.used);
-    for (size_t i = 0; i < circles.used; ++i)
-    {
-        printf("[%zu] x=%.2f y=%.2f r=%.2f\n", i, circles.array[i].x, circles.array[i].y, circles.array[i].r);
     }
 
     freeCircleArray(&circles);
