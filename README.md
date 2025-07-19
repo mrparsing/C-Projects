@@ -38,6 +38,8 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Raytracer 2D (SDL2)](./raytracing/)** — A simple 2D raytracer that visualizes light interacting with a circle.
 - **[Pong game](./pong_game/)** — A simple two–player Pong clone in C using **SDL2** and **SDL\_ttf**, with a basic victory screen. 
 - **[AES-128](./aes/)** — A **minimal implementation** of core AES-128 encryption & decryption steps in C.
+- **[Mandelbrot Set](./mandelbrot_set/)** — Render the Mandelbrot set to an SDL window.
+
 ---
 
 ### ⭐⭐⭐ Advanced
