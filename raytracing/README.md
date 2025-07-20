@@ -214,10 +214,14 @@ void check_collision(struct Circle c, struct Ray r[RAYS_NUMBER]) {
 ## 7. Draw the Rays
 
 ```c
-void FillRays(SDL_Surface *surf, struct Ray r[RAYS_NUMBER]) {
-    for (int i = 0; i < RAYS_NUMBER; ++i)
-        DrawLine(surf, r[i].x_start, r[i].y_start,
-                        r[i].x_end,   r[i].y_end, COLOR_GRAY);
+void FillRays(SDL_Surface* surface, struct Ray rays[RAYS_NUMBER]) {
+    for (int i = 0; i < RAYS_NUMBER; i++) {
+        int x0 = (int)rays[i].x_start;
+        int y0 = (int)rays[i].y_start;
+        int x1 = (int)rays[i].x_end;
+        int y1 = (int)rays[i].y_end;
+        DrawLine(surface, x0, y0, x1, y1, COLOR_YELLOW);
+    }
 }
 ```
 
