@@ -40,6 +40,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Pong game](./pong_game/)** — A simple two–player Pong clone in C using **SDL2** and **SDL\_ttf**, with a basic victory screen. 
 - **[AES-128](./aes/)** — A **minimal implementation** of core AES-128 encryption & decryption steps in C.
 - **[Mandelbrot Set](./mandelbrot_set/)** — Render the Mandelbrot set to an SDL window.
+- **[Two-Body Orbit Simulation](./orbiting_planets/)** — A program that simulates a two-body gravitational interaction. A small blue planet orbits a larger yellow body, with a trail showing its past positions.
 
 ---
 

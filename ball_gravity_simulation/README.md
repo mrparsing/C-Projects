@@ -17,8 +17,7 @@ An **interactive particle sandbox**: left–click to continuously spawn blue bal
 9. [Event Handling & Spawning Logic](#event-handling--spawning-logic)
 10. [Main Loop Execution Order](#main-loop-execution-order)
 11. [Precision, Stability & Edge Cases](#precision-stability--edge-cases)
-12. [Potential Improvements](#potential-improvements)
-13. [Quick Reference Cheat Sheet](#quick-reference-cheat-sheet)
+12. [Quick Reference Cheat Sheet](#quick-reference-cheat-sheet)
 
 ---
 
