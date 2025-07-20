@@ -4,6 +4,8 @@ Render the Mandelbrot set to an SDL window. The program computes the iteration c
 
 ---
 
+![Screenshot](../assets/mandelbrot.png)
+
 ## 1. Build Instructions
 
 ### macOS (Homebrew SDL2 installed)
