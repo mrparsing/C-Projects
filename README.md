@@ -31,6 +31,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Caesar chipher](./caesar%20chiper/)** — Implementation of the classical Caesar shift cipher.
 - **[libcurl GET Client](./curl/)** — A minimal example program that performs an HTTP **GET** request using **libcurl**.
 - **[WAV Player](./audio/)** — A command‑line program that loads a **WAV** file and plays it once using **SDL2's queueing audio API**
+- **[Starfield simulation](./starfield/)** — Flying through stars illusion.
 
 ---
 
