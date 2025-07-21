@@ -4,6 +4,10 @@ This program produces a **“flying through stars”** illusion: white squares s
 
 ---
 
+# Demo 
+
+![Demo](../assets/starfield.gif)
+
 ## 1. Build & Run
 
 ### macOS (Homebrew)
