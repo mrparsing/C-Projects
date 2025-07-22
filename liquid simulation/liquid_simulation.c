@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
+#include <string.h>
+#include <math.h>
 
 #define WIDTH 900
 #define HEIGHT 600
-#define CELL_SIZE 45
+#define CELL_SIZE 15
 #define WATER_TYPE 0
 #define SOLID_TYPE 1
 #define NUM_CELL (WIDTH / CELL_SIZE) * (HEIGHT / CELL_SIZE)
@@ -96,55 +98,64 @@ void draw_environment(SDL_Surface *surface, struct Cell environemnt[NUM_CELL])
     }
 }
 
-void simulation(struct Cell environemnt[NUM_CELL])
+#define CLAMP01(x) ((x) < 0.0 ? 0.0 : ((x) > 1.0 ? 1.0 : (x)))
+
+void simulation(struct Cell env[NUM_CELL])
 {
-    struct CellFlow flows[NUM_CELL];
+    struct Cell env_next[NUM_CELL];
 
     for (int i = 0; i < NUM_CELL; i++)
     {
-        flows[i] = (struct CellFlow){0, 0, 0, 0};
+        env_next[i] = env[i];
     }
 
     for (int i = 0; i < ROWS; i++)
     {
         for (int j = 0; j < COLUMNS; j++)
         {
-            int idx = j + COLUMNS * i;
-            struct Cell current_cell = environemnt[idx];
-
-            if (current_cell.type == SOLID_TYPE)
-                continue;
-            if (current_cell.fill_level <= 0.0)
-                continue;
-
-            if (i < ROWS - 1)
+            struct Cell source_cell = env[j + COLUMNS * i];
+            // DOWN
+            if (source_cell.type == WATER_TYPE && i < ROWS - 1)
             {
-                int down_idx = j + COLUMNS * (i + 1);
-                if (environemnt[down_idx].type != SOLID_TYPE)
+                struct Cell destination_cell = env[j + COLUMNS * (i + 1)];
+                if (destination_cell.fill_level < source_cell.fill_level)
                 {
-                    double space = 1.0 - environemnt[down_idx].fill_level;
-                    if (space > 0.0)
+                    env_next[j + COLUMNS * i].fill_level = 0;
+                    env_next[j + COLUMNS * (i + 1)].fill_level += source_cell.fill_level;
+                }
+            }
+
+            int below_full_or_solid = 0;
+            if (i + 1 == ROWS || env[j + COLUMNS * (i + 1)].fill_level >= 1 || env[j + COLUMNS * (i + 1)].type == SOLID_TYPE)
+            {
+
+                // LEFT
+                if (source_cell.type == WATER_TYPE && j > 0)
+                {
+                    struct Cell destination_cell = env[(j - 1) + COLUMNS * i];
+                    if (destination_cell.type == WATER_TYPE && destination_cell.fill_level < source_cell.fill_level)
                     {
-                        double amount = (current_cell.fill_level < space) ? current_cell.fill_level : space;
-                        flows[idx].flow_down += amount;
-                        flows[down_idx].flow_up += amount;
+                        double delta_fill = source_cell.fill_level - destination_cell.fill_level;
+                        env_next[j + COLUMNS * i].fill_level -= delta_fill / 3;
+                        env_next[(j - 1) + COLUMNS * i].fill_level += delta_fill / 3;
+                    }
+                }
+                if (source_cell.type == WATER_TYPE && j < COLUMNS - 1)
+                {
+                    struct Cell destination_cell = env[(j + 1) + COLUMNS * i];
+                    if (destination_cell.fill_level < source_cell.fill_level)
+                    {
+                        double delta_fill = source_cell.fill_level - destination_cell.fill_level;
+                        env_next[j + COLUMNS * i].fill_level -= delta_fill / 3;
+                        env_next[(j + 1) + COLUMNS * i].fill_level += delta_fill / 3;
                     }
                 }
             }
         }
     }
-
-    for (int i = 0; i < ROWS; i++)
+    for (int i = 0; i < NUM_CELL; i++)
     {
-        for (int j = 0; j < COLUMNS; j++)
-        {
-            int idx = j + COLUMNS * i;
-            environemnt[idx].fill_level += flows[idx].flow_up - flows[idx].flow_down;
-            if (environemnt[idx].fill_level < 0.0)
-                environemnt[idx].fill_level = 0.0;
-            if (environemnt[idx].fill_level > 1.0)
-                environemnt[idx].fill_level = 1.0;
-        }
+        env[i] = env_next[i];
     }
 }
 

@@ -4,6 +4,8 @@
         "queue": "c",
         "stack": "c",
         "vector": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "__locale": "c",
+        "locale": "c"
     }
 }
