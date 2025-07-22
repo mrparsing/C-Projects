@@ -66,7 +66,7 @@ void draw_cell(SDL_Surface *surface, struct Cell cell)
 
     if (cell.type == WATER_TYPE)
     {
-        int water_height = cell.fill_level * CELL_SIZE;
+        int water_height = cell.fill_level > 1 ? CELL_SIZE : cell.fill_level * CELL_SIZE;
         int empty_height = CELL_SIZE - water_height;
         SDL_Rect water = {rect.x, rect.y + empty_height, CELL_SIZE, water_height};
         color = SDL_MapRGB(surface->format, 105, 216, 255);
@@ -98,9 +98,7 @@ void draw_environment(SDL_Surface *surface, struct Cell environemnt[NUM_CELL])
     }
 }
 
-#define CLAMP01(x) ((x) < 0.0 ? 0.0 : ((x) > 1.0 ? 1.0 : (x)))
-
-void simulation(struct Cell env[NUM_CELL])
+void simulation_gravity(struct Cell env[NUM_CELL])
 {
     struct Cell env_next[NUM_CELL];
 
@@ -114,21 +112,50 @@ void simulation(struct Cell env[NUM_CELL])
         for (int j = 0; j < COLUMNS; j++)
         {
             struct Cell source_cell = env[j + COLUMNS * i];
-            // DOWN
+
             if (source_cell.type == WATER_TYPE && i < ROWS - 1)
             {
                 struct Cell destination_cell = env[j + COLUMNS * (i + 1)];
                 if (destination_cell.fill_level < source_cell.fill_level)
                 {
-                    env_next[j + COLUMNS * i].fill_level = 0;
-                    env_next[j + COLUMNS * (i + 1)].fill_level += source_cell.fill_level;
+                    double destination_free_space = 1 - destination_cell.fill_level;
+                    if (destination_free_space >= source_cell.fill_level)
+                    {
+                        env_next[j + COLUMNS * i].fill_level = 0;
+                        env_next[j + COLUMNS * (i + 1)].fill_level += source_cell.fill_level;
+                    }
+                    else
+                    {
+                        env_next[j + COLUMNS * i].fill_level -= destination_free_space;
+                        env_next[j + COLUMNS * (i + 1)].fill_level = 1;
+                    }
                 }
             }
+        }
+    }
 
-            int below_full_or_solid = 0;
-            if (i + 1 == ROWS || env[j + COLUMNS * (i + 1)].fill_level >= 1 || env[j + COLUMNS * (i + 1)].type == SOLID_TYPE)
+    for (int i = 0; i < NUM_CELL; i++)
+    {
+        env[i] = env_next[i];
+    }
+}
+
+void spreading_water(struct Cell env[NUM_CELL])
+{
+    struct Cell env_next[NUM_CELL];
+
+    for (int i = 0; i < NUM_CELL; i++)
+    {
+        env_next[i] = env[i];
+    }
+
+    for (int i = 0; i < ROWS; i++)
+    {
+        for (int j = 0; j < COLUMNS; j++)
+        {
+            if (i + 1 == ROWS || env[j + COLUMNS * (i + 1)].fill_level >= env[j + COLUMNS * i].fill_level || env[j + COLUMNS * (i + 1)].type == SOLID_TYPE)
             {
-
+                struct Cell source_cell = env[j + COLUMNS * i];
                 // LEFT
                 if (source_cell.type == WATER_TYPE && j > 0)
                 {
@@ -153,10 +180,48 @@ void simulation(struct Cell env[NUM_CELL])
             }
         }
     }
+
     for (int i = 0; i < NUM_CELL; i++)
     {
         env[i] = env_next[i];
     }
+}
+
+void upwards_water(struct Cell env[NUM_CELL])
+{
+    struct Cell env_next[NUM_CELL];
+
+    for (int i = 0; i < NUM_CELL; i++)
+    {
+        env_next[i] = env[i];
+    }
+
+    for (int i = 0; i < ROWS; i++)
+    {
+        for (int j = 0; j < COLUMNS; j++)
+        {
+            struct Cell source_cell = env[j + COLUMNS * i];
+            if (source_cell.type == WATER_TYPE && source_cell.fill_level > 1 && i > 0 && env[j + COLUMNS * (i - 1)].type == WATER_TYPE && source_cell.fill_level > env[j + COLUMNS * (i - 1)].fill_level)
+            {
+                struct Cell destination_cell = env[j + COLUMNS * (i - 1)];
+                double transfer_fill = source_cell.fill_level - 1;
+                env_next[j + COLUMNS * i].fill_level -= transfer_fill;
+                env_next[j + COLUMNS * (i - 1)].fill_level += transfer_fill;
+            }
+        }
+    }
+
+    for (int i = 0; i < NUM_CELL; i++)
+    {
+        env[i] = env_next[i];
+    }
+}
+
+void simulation(struct Cell env[NUM_CELL])
+{
+    simulation_gravity(env);
+    spreading_water(env);
+    upwards_water(env);
 }
 
 int main()
@@ -208,12 +273,20 @@ int main()
                 {
                     int mouse_cell_j = e.motion.x / CELL_SIZE;
                     int mouse_cell_i = e.motion.y / CELL_SIZE;
-                    int fill_level = delete_mode ? 0 : 1;
+                    int fill_level;
+                    struct Cell cell;
+
                     if (delete_mode != 0)
                     {
                         current_type = WATER_TYPE;
+                        fill_level = 0;
+                        cell = (struct Cell){current_type, fill_level, mouse_cell_j, mouse_cell_i};
                     }
-                    struct Cell cell = {current_type, fill_level, mouse_cell_j, mouse_cell_i};
+                    else
+                    {
+                        fill_level = environment[mouse_cell_j + COLUMNS * mouse_cell_i].fill_level + 1;
+                        cell = (struct Cell){current_type, fill_level, mouse_cell_j, mouse_cell_i};
+                    }
                     environment[mouse_cell_j + COLUMNS * mouse_cell_i] = cell;
                 }
             }
