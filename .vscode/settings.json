@@ -2,6 +2,8 @@
     "C_Cpp.errorSquiggles": "disabled",
     "files.associations": {
         "queue": "c",
-        "stack": "c"
+        "stack": "c",
+        "vector": "c",
+        "stdio.h": "c"
     }
 }
