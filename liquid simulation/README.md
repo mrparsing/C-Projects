@@ -2,6 +2,8 @@
 
 This program simulates water flowing through a grid of square cells using a very simple cellular model. Each cell stores **type** (water/solid) and **fill level** (0 → empty, 1 → full). Gravity pulls water down; if it can’t go down, it spreads sideways; if a cell overfills, excess is pushed upward. The result is a quick-and-dirty fluid toy you can paint with the mouse.
 
+> Idea for this project inspired by: https://www.jgallant.com/2d-liquid-simulator-with-cellular-automaton-in-unity/
+
 ---
 
 # Demo
