@@ -42,6 +42,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[AES-128](./aes/)** — A **minimal implementation** of core AES-128 encryption & decryption steps in C.
 - **[Mandelbrot Set](./mandelbrot_set/)** — Render the Mandelbrot set to an SDL window.
 - **[Two-Body Orbit Simulation](./orbiting_planets/)** — A program that simulates a two-body gravitational interaction. A small blue planet orbits a larger yellow body, with a trail showing its past positions.
+- **[Neural Network from scratch](./neural_network/)** — A minimal multi‑layer perceptron that learns the XOR function using **stochastic gradient descent**, **binary cross‑entropy**, and **sigmoid activations**.
 
 ---
 
