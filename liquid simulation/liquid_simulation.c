@@ -277,12 +277,12 @@ int main()
     Uint32 color_white = SDL_MapRGB(surface->format, 255, 255, 255);
 
     int running = 1;
-    SDL_Event event;            // renamed from 'e'
+    SDL_Event event;
 
-    int active_type = SOLID_TYPE;   // renamed from 'current_type'
-    int erase_mode = 0;             // renamed from 'delete_mode'
+    int active_type = SOLID_TYPE;
+    int erase_mode = 0;
 
-    struct Cell world[NUM_CELL];    // renamed from 'environment'
+    struct Cell world[NUM_CELL];
     initialize_environment(world);
 
     while (running)
@@ -301,8 +301,8 @@ int main()
                 {
                     int mouse_cell_j = event.motion.x / CELL_SIZE;
                     int mouse_cell_i = event.motion.y / CELL_SIZE;
-                    int lvl;                     // renamed from 'fill_level'
-                    struct Cell new_cell;        // renamed from 'cell'
+                    int lvl;
+                    struct Cell new_cell;
 
                     if (erase_mode != 0)
                     {
