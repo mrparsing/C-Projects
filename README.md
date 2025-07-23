@@ -44,13 +44,14 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Mandelbrot Set](./mandelbrot_set/)** — Render the Mandelbrot set to an SDL window.
 - **[Two-Body Orbit Simulation](./orbiting_planets/)** — A program that simulates a two-body gravitational interaction. A small blue planet orbits a larger yellow body, with a trail showing its past positions.
 - **[Neural Network from scratch](./neural_network/)** — A minimal multi‑layer perceptron that learns the XOR function using **stochastic gradient descent**, **binary cross‑entropy**, and **sigmoid activations**.
+- **[Rotating Cube](./cube/)** — A program that renders a rotating 3‑D wireframe cube using **SDL2**.
+- **[ASCII Rotating Cube](./terminal_cube/)** — Another 3D cube rotating but in the terminal.
 
 ---
 
 ### ⭐⭐⭐ Advanced
 
 - **[Ball gravity simulation](./ball_gravity_simulation/)** — An **interactive particle sandbox**: balls fall, collide with each other (elastic-ish with restitution), bounce on walls/floor, and resolve penetration against obstacles.
-- **[Rotating Cube](./cube/)** — A program that renders a rotating 3‑D wireframe cube using **SDL2**.
 - **[Liquid simulation](./liquid%20simulation/)** — A program that simulates water flowing through a grid of square cells using a very simple cellular model.
 ---
 
