@@ -49,7 +49,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 
 - **[Ball gravity simulation](./ball_gravity_simulation/)** — An **interactive particle sandbox**: balls fall, collide with each other (elastic-ish with restitution), bounce on walls/floor, and resolve penetration against obstacles.
 - **[Rotating Cube](./cube/)** — A program that renders a rotating 3‑D wireframe cube using **SDL2**.
-
+- **[Liquid simulation](./liquid%20simulation/)** — A program that simulates water flowing through a grid of square cells using a very simple cellular model.
 ---
 
 # 🚧 Work in Progress
