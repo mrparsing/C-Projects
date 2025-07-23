@@ -12,14 +12,17 @@
 #define ROWS HEIGHT / CELL_SIZE
 #define COLUMNS WIDTH / CELL_SIZE
 
+// Single cell of the grid: holds what type it is and how much water is inside.
 struct Cell
 {
-    int type;
-    double fill_level;
-    int x;
-    int y;
+    int type;              // WATER_TYPE or SOLID_TYPE
+    double fill_level;     // 0.0 (empty) .. 1.0 (full)
+    int x;                 // column index
+    int y;                 // row index
+    int flowing_down;      // unused flag (kept for future features)
 };
 
+// Not used in current logic, kept for potential extension
 struct CellFlow
 {
     double flow_left;
@@ -28,11 +31,22 @@ struct CellFlow
     double flow_down;
 };
 
+// Convert (x, y) to linear index in the array
+static inline int idx(int x, int y) { return x + y * COLUMNS; }
+
+// Clamp a double between two bounds
+static inline double clampd(double v, double lo, double hi) {
+    if (v < lo) return lo;
+    if (v > hi) return hi;
+    return v;
+}
+
+// Draw the grid lines for visualization
 void draw_grid(SDL_Surface *surface, Uint32 color)
 {
     SDL_Rect line;
 
-    // Linee verticali
+    // Vertical lines
     for (int x = 0; x <= WIDTH; x += CELL_SIZE)
     {
         line.x = x;
@@ -42,7 +56,7 @@ void draw_grid(SDL_Surface *surface, Uint32 color)
         SDL_FillRect(surface, &line, color);
     }
 
-    // Linee orizzontali
+    // Horizontal lines
     for (int y = 0; y <= HEIGHT; y += CELL_SIZE)
     {
         line.x = 0;
@@ -53,128 +67,143 @@ void draw_grid(SDL_Surface *surface, Uint32 color)
     }
 }
 
-void draw_cell(SDL_Surface *surface, struct Cell cell)
+// Render a single cell (background + water or solid)
+void draw_cell(SDL_Surface *surface, struct Cell cellData)
 {
     SDL_Rect rect;
-    rect.x = cell.x * CELL_SIZE;
-    rect.y = cell.y * CELL_SIZE;
+    rect.x = cellData.x * CELL_SIZE;
+    rect.y = cellData.y * CELL_SIZE;
     rect.w = CELL_SIZE;
     rect.h = CELL_SIZE;
 
-    Uint32 color = SDL_MapRGB(surface->format, 0, 0, 0);
+    // White background
+    Uint32 color = SDL_MapRGB(surface->format, 255, 255, 255);
     SDL_FillRect(surface, &rect, color);
 
-    if (cell.type == WATER_TYPE)
-    {
-        int water_height = cell.fill_level > 1 ? CELL_SIZE : cell.fill_level * CELL_SIZE;
-        int empty_height = CELL_SIZE - water_height;
-        SDL_Rect water = {rect.x, rect.y + empty_height, CELL_SIZE, water_height};
-        color = SDL_MapRGB(surface->format, 105, 216, 255);
-        SDL_FillRect(surface, &water, color);
-    }
-    if (cell.type == SOLID_TYPE)
-    {
-        color = SDL_MapRGB(surface->format, 255, 255, 255);
+    if (cellData.type == WATER_TYPE) {
+        // Determine water height (scaled by fill level)
+        int water_height = (cellData.fill_level >= 1.0) ? CELL_SIZE : (int)(cellData.fill_level * CELL_SIZE);
+        if (water_height > 0) {
+            int empty_height = CELL_SIZE - water_height;
+            SDL_Rect water = { rect.x, rect.y + empty_height, CELL_SIZE, water_height };
+            color = SDL_MapRGB(surface->format, 50, 200, 255);
+            SDL_FillRect(surface, &water, color);
+        }
+    } else if (cellData.type == SOLID_TYPE) {
+        // Solid blocks are black
+        color = SDL_MapRGB(surface->format, 0, 0, 0);
         SDL_FillRect(surface, &rect, color);
     }
 }
 
-void initialize_environment(struct Cell environment[NUM_CELL])
+// Initialize every cell as empty water type
+void initialize_environment(struct Cell world[NUM_CELL])
 {
     for (int i = 0; i < ROWS; i++)
     {
         for (int j = 0; j < COLUMNS; j++)
         {
-            environment[j + COLUMNS * i] = (struct Cell){WATER_TYPE, 0, j, i};
+            world[j + COLUMNS * i] = (struct Cell){WATER_TYPE, 0.0, j, i, 0};
         }
     }
 }
 
+// Draw the whole environment
 void draw_environment(SDL_Surface *surface, struct Cell environemnt[NUM_CELL])
 {
     for (int i = 0; i < NUM_CELL; i++)
     {
         draw_cell(surface, environemnt[i]);
     }
-}
 
-void simulation_gravity(struct Cell env[NUM_CELL])
-{
-    struct Cell env_next[NUM_CELL];
-
-    for (int i = 0; i < NUM_CELL; i++)
-    {
-        env_next[i] = env[i];
-    }
-
+    // Extra pass for a small visual effect when two full water cells touch vertically
     for (int i = 0; i < ROWS; i++)
     {
         for (int j = 0; j < COLUMNS; j++)
         {
-            struct Cell source_cell = env[j + COLUMNS * i];
-
-            if (source_cell.type == WATER_TYPE && i < ROWS - 1)
+            struct Cell cell_above = environemnt[j + COLUMNS * (i - 1)];
+            struct Cell current_cell = environemnt[j + COLUMNS * i];
+            if (i > 0 && cell_above.type == WATER_TYPE && cell_above.fill_level > 0.6 && current_cell.fill_level > 0.6 && current_cell.type == WATER_TYPE)
             {
-                struct Cell destination_cell = env[j + COLUMNS * (i + 1)];
-                if (destination_cell.fill_level < source_cell.fill_level)
+                if (cell_above.fill_level > 0 && current_cell.fill_level > 0)
                 {
-                    double destination_free_space = 1 - destination_cell.fill_level;
-                    if (destination_free_space >= source_cell.fill_level)
-                    {
-                        env_next[j + COLUMNS * i].fill_level = 0;
-                        env_next[j + COLUMNS * (i + 1)].fill_level += source_cell.fill_level;
-                    }
-                    else
-                    {
-                        env_next[j + COLUMNS * i].fill_level -= destination_free_space;
-                        env_next[j + COLUMNS * (i + 1)].fill_level = 1;
-                    }
+                    draw_cell(surface, environemnt[j + COLUMNS * i]);
+                }
+            }
+        }
+    }
+}
+
+// Simple gravity step: move water down if there's free space
+void simulation_gravity(struct Cell grid[NUM_CELL])
+{
+    struct Cell grid_next[NUM_CELL];
+    memcpy(grid_next, grid, sizeof(grid_next));
+
+    // From bottom-1 to top helps a bit with stability
+    for (int y = ROWS - 2; y >= 0; --y) {
+        for (int x = 0; x < COLUMNS; ++x) {
+            int src_i = idx(x, y);
+            int dst_i = idx(x, y + 1);
+
+            struct Cell src = grid[src_i];
+            struct Cell dst = grid[dst_i];
+
+            if (src.type == WATER_TYPE && src.fill_level > 0.0 && dst.type != SOLID_TYPE) {
+                double free_space = 1.0 - dst.fill_level;
+                if (free_space > 0.0) {
+                    double transfer = fmin(src.fill_level, free_space);
+                    grid_next[src_i].fill_level -= transfer;
+                    grid_next[dst_i].fill_level += transfer;
                 }
             }
         }
     }
 
-    for (int i = 0; i < NUM_CELL; i++)
-    {
-        env[i] = env_next[i];
+    // Final clamp
+    for (int i = 0; i < NUM_CELL; ++i) {
+        grid_next[i].fill_level = clampd(grid_next[i].fill_level, 0.0, 1.0);
+        grid[i] = grid_next[i];
     }
 }
 
-void spreading_water(struct Cell env[NUM_CELL])
+// Spread water horizontally when it's not falling
+void spreading_water(struct Cell grid[NUM_CELL])
 {
-    struct Cell env_next[NUM_CELL];
+    struct Cell grid_next[NUM_CELL];
 
     for (int i = 0; i < NUM_CELL; i++)
     {
-        env_next[i] = env[i];
+        grid_next[i] = grid[i];
     }
 
     for (int i = 0; i < ROWS; i++)
     {
         for (int j = 0; j < COLUMNS; j++)
         {
-            if (i + 1 == ROWS || env[j + COLUMNS * (i + 1)].fill_level >= env[j + COLUMNS * i].fill_level || env[j + COLUMNS * (i + 1)].type == SOLID_TYPE)
+            if (i + 1 == ROWS || grid[j + COLUMNS * (i + 1)].fill_level >= grid[j + COLUMNS * i].fill_level || grid[j + COLUMNS * (i + 1)].type == SOLID_TYPE)
             {
-                struct Cell source_cell = env[j + COLUMNS * i];
+                struct Cell src_cell = grid[j + COLUMNS * i];
                 // LEFT
-                if (source_cell.type == WATER_TYPE && j > 0)
+                if (src_cell.type == WATER_TYPE && j > 0)
                 {
-                    struct Cell destination_cell = env[(j - 1) + COLUMNS * i];
-                    if (destination_cell.type == WATER_TYPE && destination_cell.fill_level < source_cell.fill_level)
+                    struct Cell dst_cell = grid[(j - 1) + COLUMNS * i];
+                    if (dst_cell.type == WATER_TYPE && dst_cell.fill_level < src_cell.fill_level)
                     {
-                        double delta_fill = source_cell.fill_level - destination_cell.fill_level;
-                        env_next[j + COLUMNS * i].fill_level -= delta_fill / 3;
-                        env_next[(j - 1) + COLUMNS * i].fill_level += delta_fill / 3;
+                        double delta_fill = src_cell.fill_level - dst_cell.fill_level;
+                        grid_next[j + COLUMNS * i].fill_level -= delta_fill / 3;
+                        grid_next[(j - 1) + COLUMNS * i].fill_level += delta_fill / 3;
                     }
                 }
-                if (source_cell.type == WATER_TYPE && j < COLUMNS - 1)
+                // RIGHT
+                if (src_cell.type == WATER_TYPE && j < COLUMNS - 1)
                 {
-                    struct Cell destination_cell = env[(j + 1) + COLUMNS * i];
-                    if (destination_cell.fill_level < source_cell.fill_level)
+                    struct Cell dst_cell = grid[(j + 1) + COLUMNS * i];
+                    if (dst_cell.fill_level < src_cell.fill_level)
                     {
-                        double delta_fill = source_cell.fill_level - destination_cell.fill_level;
-                        env_next[j + COLUMNS * i].fill_level -= delta_fill / 3;
-                        env_next[(j + 1) + COLUMNS * i].fill_level += delta_fill / 3;
+                        double delta_fill = src_cell.fill_level - dst_cell.fill_level;
+                        grid_next[j + COLUMNS * i].fill_level -= delta_fill / 3;
+                        grid_next[(j + 1) + COLUMNS * i].fill_level += delta_fill / 3;
                     }
                 }
             }
@@ -183,45 +212,47 @@ void spreading_water(struct Cell env[NUM_CELL])
 
     for (int i = 0; i < NUM_CELL; i++)
     {
-        env[i] = env_next[i];
+        grid[i] = grid_next[i];
     }
 }
 
-void upwards_water(struct Cell env[NUM_CELL])
+// Push excess water upwards (when a cell is overfilled > 1.0)
+void upwards_water(struct Cell grid[NUM_CELL])
 {
-    struct Cell env_next[NUM_CELL];
+    struct Cell grid_next[NUM_CELL];
 
     for (int i = 0; i < NUM_CELL; i++)
     {
-        env_next[i] = env[i];
+        grid_next[i] = grid[i];
     }
 
     for (int i = 0; i < ROWS; i++)
     {
         for (int j = 0; j < COLUMNS; j++)
         {
-            struct Cell source_cell = env[j + COLUMNS * i];
-            if (source_cell.type == WATER_TYPE && source_cell.fill_level > 1 && i > 0 && env[j + COLUMNS * (i - 1)].type == WATER_TYPE && source_cell.fill_level > env[j + COLUMNS * (i - 1)].fill_level)
+            struct Cell src_cell = grid[j + COLUMNS * i];
+            if (src_cell.type == WATER_TYPE && src_cell.fill_level > 1 && i > 0 && grid[j + COLUMNS * (i - 1)].type == WATER_TYPE && src_cell.fill_level > grid[j + COLUMNS * (i - 1)].fill_level)
             {
-                struct Cell destination_cell = env[j + COLUMNS * (i - 1)];
-                double transfer_fill = source_cell.fill_level - 1;
-                env_next[j + COLUMNS * i].fill_level -= transfer_fill;
-                env_next[j + COLUMNS * (i - 1)].fill_level += transfer_fill;
+                struct Cell dst_cell = grid[j + COLUMNS * (i - 1)];
+                double transfer_fill = src_cell.fill_level - 1;
+                grid_next[j + COLUMNS * i].fill_level -= transfer_fill;
+                grid_next[j + COLUMNS * (i - 1)].fill_level += transfer_fill;
             }
         }
     }
 
     for (int i = 0; i < NUM_CELL; i++)
     {
-        env[i] = env_next[i];
+        grid[i] = grid_next[i];
     }
 }
 
-void simulation(struct Cell env[NUM_CELL])
+// Single simulation step combining gravity + lateral spread + vertical push
+void simulation(struct Cell grid[NUM_CELL])
 {
-    simulation_gravity(env);
-    spreading_water(env);
-    upwards_water(env);
+    simulation_gravity(grid);
+    spreading_water(grid);
+    upwards_water(grid);
 }
 
 int main()
@@ -240,72 +271,69 @@ int main()
 
     SDL_Surface *surface = SDL_GetWindowSurface(window);
 
-    // Mappa i colori nel formato della surface
+    // Map colors in the surface format
     Uint32 color_gray = SDL_MapRGB(surface->format, 130, 130, 130);
     Uint32 color_black = SDL_MapRGB(surface->format, 0, 0, 0);
     Uint32 color_white = SDL_MapRGB(surface->format, 255, 255, 255);
 
     int running = 1;
-    SDL_Event e;
+    SDL_Event event;            // renamed from 'e'
 
-    int current_type = SOLID_TYPE;
-    int delete_mode = 0;
+    int active_type = SOLID_TYPE;   // renamed from 'current_type'
+    int erase_mode = 0;             // renamed from 'delete_mode'
 
-    struct Cell environment[NUM_CELL];
-    initialize_environment(environment);
+    struct Cell world[NUM_CELL];    // renamed from 'environment'
+    initialize_environment(world);
 
     while (running)
     {
-        // Cancella tutto con sfondo nero
-        // SDL_FillRect(surface, NULL, color_black);
-
-        // Gestione eventi
-        while (SDL_PollEvent(&e))
+        // Event handling
+        while (SDL_PollEvent(&event))
         {
-            if (e.type == SDL_QUIT)
+            if (event.type == SDL_QUIT)
             {
                 running = 0;
             }
 
-            if (e.type == SDL_MOUSEMOTION)
+            if (event.type == SDL_MOUSEMOTION)
             {
-                if (e.motion.state != 0)
+                if (event.motion.state != 0)
                 {
-                    int mouse_cell_j = e.motion.x / CELL_SIZE;
-                    int mouse_cell_i = e.motion.y / CELL_SIZE;
-                    int fill_level;
-                    struct Cell cell;
+                    int mouse_cell_j = event.motion.x / CELL_SIZE;
+                    int mouse_cell_i = event.motion.y / CELL_SIZE;
+                    int lvl;                     // renamed from 'fill_level'
+                    struct Cell new_cell;        // renamed from 'cell'
 
-                    if (delete_mode != 0)
+                    if (erase_mode != 0)
                     {
-                        current_type = WATER_TYPE;
-                        fill_level = 0;
-                        cell = (struct Cell){current_type, fill_level, mouse_cell_j, mouse_cell_i};
+                        active_type = WATER_TYPE;
+                        lvl = 0;
+                        new_cell = (struct Cell){active_type, lvl, mouse_cell_j, mouse_cell_i};
                     }
                     else
                     {
-                        fill_level = environment[mouse_cell_j + COLUMNS * mouse_cell_i].fill_level + 1;
-                        cell = (struct Cell){current_type, fill_level, mouse_cell_j, mouse_cell_i};
+                        lvl = world[mouse_cell_j + COLUMNS * mouse_cell_i].fill_level + 1;
+                        new_cell = (struct Cell){active_type, lvl, mouse_cell_j, mouse_cell_i};
                     }
-                    environment[mouse_cell_j + COLUMNS * mouse_cell_i] = cell;
+                    world[mouse_cell_j + COLUMNS * mouse_cell_i] = new_cell;
                 }
             }
-            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_SPACE)
+            if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_SPACE)
             {
-                current_type = 1 - current_type;
+                active_type = 1 - active_type;
             }
-            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_BACKSPACE)
+            if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_BACKSPACE)
             {
-                delete_mode = 1 - delete_mode;
+                erase_mode = 1 - erase_mode;
             }
         }
 
         // SIMULATION
-        simulation(environment);
+        simulation(world);
 
-        draw_environment(surface, environment);
+        draw_environment(surface, world);
         draw_grid(surface, color_gray);
-        // Aggiorna il contenuto della finestra
+        // Update window contents
         SDL_UpdateWindowSurface(window);
         SDL_Delay(10);
     }
