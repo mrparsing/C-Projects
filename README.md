@@ -2,7 +2,7 @@
 
 This repository contains a collection of **small C projects** designed to help you **practice, experiment, and understand** core programming concepts in C.
 
-Each project has a specific purpose (graphics, algorithms, memory handling, etc.) and is categorized by **difficulty level (★ 1 – 5)** taken from the internal pagella.
+Each project has a specific purpose (graphics, algorithms, memory handling, etc.) and is categorized by **difficulty level (⭐ 1 – 5)** taken from the internal pagella.
 
 ---
 
@@ -17,7 +17,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 
 ## 🔗 Projects
 
-> ★☆☆☆☆ = 1  ★★☆☆☆ = 2  ★★★☆☆ = 3  ★★★★☆ = 4  ★★★★★ = 5  
+> ⭐☆☆☆☆ = 1  ⭐⭐☆☆☆ = 2  ⭐⭐⭐☆☆ = 3  ⭐⭐⭐⭐☆ = 4  ⭐⭐⭐⭐⭐ = 5  
 
 ---
 
@@ -25,6 +25,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 
 - **[Caesar chipher](./project/caesar%20chiper/)** — Implementation of the classical Caesar shift cipher.  
 - **[File Obfuscator](./project/file_obfuscator/)** — A C utility that applies a **bitwise NOT** or a **byte-wise XOR** to the contents of a file and writes the transformed bytes to an output file.  
+- **[Happy Number Checker](./project/happy_numbers/)** — A tiny command‑line utility that determines whether a given integer is a **happy number**.
 
 ---
 
