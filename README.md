@@ -26,6 +26,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Caesar chipher](./project/caesar%20chiper/)** — Implementation of the classical Caesar shift cipher.  
 - **[File Obfuscator](./project/file_obfuscator/)** — A C utility that applies a **bitwise NOT** or a **byte-wise XOR** to the contents of a file and writes the transformed bytes to an output file.  
 - **[Happy Number Checker](./project/happy_numbers/)** — A tiny command‑line utility that determines whether a given integer is a **happy number**.
+- **[Sieve of Eratosthenes](./project/sieve_of_eratosthenes/)** — A simple Sieve of Eratosthenes.
 
 ---
 
