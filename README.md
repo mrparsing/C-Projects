@@ -60,6 +60,8 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Three-Body Problem (SDL2)](./project/3_body_problem/)** — A leap-frog integrator simulating the famous three-body figure-8 orbit and drawing trails.  
 - **[MD5 Implementation](./project/md5/)** — Implementation of the MD5 algorithm.  
 - **[RSA Encryption and Decryption with GMP](./project/rsa/)** — RSA implementation using C and the GMP library for handling big numbers.  
+- **[Sudoku Generator & Solver](./project/sudoku/)** — Generates a **fully‑valid Sudoku** and solves it with backtracking.
+
 
 ---
 
