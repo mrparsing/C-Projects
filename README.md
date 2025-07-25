@@ -29,6 +29,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Happy Number Checker](./project/happy_numbers/)** — A tiny command‑line utility that determines whether a given integer is a **happy number**.
 - **[Sieve of Eratosthenes](./project/sieve_of_eratosthenes/)** — A simple Sieve of Eratosthenes.
 - **[Pascal's Triangle](./project/pascal_triangle/)** — A C program that requests an integer `row ≥ 1` from the user and prints **Pascal’s Triangle** up to that row.
+- **[Credit Card Validator](./project/credit_card_validator/)** — A command‑line utility that checks whether a numeric string passes the **Luhn checksum**.
 
 ---
 
