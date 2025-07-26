@@ -6,6 +6,7 @@
         "vector": "c",
         "stdio.h": "c",
         "__locale": "c",
-        "locale": "c"
+        "locale": "c",
+        "termios.h": "c"
     }
 }

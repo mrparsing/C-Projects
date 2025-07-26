@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <stdarg.h>
+#include <fcntl.h>
 
 // Macro to interpret Ctrl key combinations (e.g., CTRL_KEY('q') becomes 17)
 #define CTRL_KEY(k) ((k) & 0x1f)
@@ -24,6 +25,7 @@
 // Enumeration of special key codes
 enum editorKey
 {
+    BACKSPACE = 127,
     ARROW_LEFT = 1000,
     ARROW_RIGHT,
     ARROW_UP,
@@ -291,7 +293,49 @@ void editorAppendRow(char *s, size_t len)
     E.numrows++;
 }
 
+void editorRowInsertChar(erow *row, int at, int c)
+{
+    if (at < 0 || at > row->size)
+        at = row->size;
+    row->chars = realloc(row->chars, row->size + 2);
+    memmove(&row->chars[at + 1], &row->chars[at], row->size - at + 1);
+    row->size++;
+    row->chars[at] = c;
+    editorUpdateRow(row);
+}
+
+/* ======== EDITOR OPERATIONS ======== */
+
+void editorInsertChar(int c)
+{
+    if (E.cy == E.numrows)
+    {
+        editorAppendRow("", 0);
+    }
+    editorRowInsertChar(&E.row[E.cy], E.cx, c);
+    E.cx++;
+}
+
 /* ======== FILE I/O ======== */
+
+char *editorRowsToString(int *buflen)
+{
+    int totlen = 0;
+    int j;
+    for (j = 0; j < E.numrows; j++)
+        totlen += E.row[j].size + 1;
+    *buflen = totlen;
+    char *buf = malloc(totlen);
+    char *p = buf;
+    for (j = 0; j < E.numrows; j++)
+    {
+        memcpy(p, E.row[j].chars, E.row[j].size);
+        p += E.row[j].size;
+        *p = '\n';
+        p++;
+    }
+    return buf;
+}
 
 void editorOpen(char *filename)
 {
@@ -313,6 +357,40 @@ void editorOpen(char *filename)
     }
     free(line);
     fclose(fp);
+}
+
+void editorSetStatusMessage(const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(E.statusmsg, sizeof(E.statusmsg), fmt, ap);
+    va_end(ap);
+    E.statusmsg_time = time(NULL);
+}
+
+void editorSave(void)
+{
+    if (E.filename == NULL)
+        return;
+    int len;
+    char *buf = editorRowsToString(&len);
+    int fd = open(E.filename, O_RDWR | O_CREAT, 0644);
+    if (fd != -1)
+    {
+        if (ftruncate(fd, len) != -1)
+        {
+            if (write(fd, buf, len) == len)
+            {
+                close(fd);
+                free(buf);
+                editorSetStatusMessage("%d bytes written to disk", len);
+                return;
+            }
+        }
+        close(fd);
+    }
+    free(buf);
+    editorSetStatusMessage("Can't save! I/O error: %s", strerror(errno));
 }
 
 /* ======== APPEND BUFFER ======== */
@@ -399,10 +477,17 @@ void editorProcessKeypress(void)
 
     switch (c)
     {
+    case '\r':
+        /* TODO */
+        break;
     case CTRL_KEY('q'):
         write(STDOUT_FILENO, "\x1b[2J", 4); // Clear screen
         write(STDOUT_FILENO, "\x1b[H", 3);  // Move cursor to top-left
         exit(0);
+        break;
+
+    case CTRL_KEY('s'):
+        editorSave();
         break;
 
     case HOME_KEY:
@@ -412,6 +497,12 @@ void editorProcessKeypress(void)
     case END_KEY:
         if (E.cy < E.numrows)
             E.cx = E.row[E.cy].size;
+        break;
+
+    case BACKSPACE:
+    case CTRL_KEY('h'):
+    case DEL_KEY:
+        /* TODO */
         break;
 
     case PAGE_UP:
@@ -440,12 +531,20 @@ void editorProcessKeypress(void)
     case ARROW_RIGHT:
         editorMoveCursor(c);
         break;
+
+    case CTRL_KEY('l'):
+    case '\x1b':
+        break;
+
+    default:
+        editorInsertChar(c);
+        break;
     }
 }
 
 /* ======== OUTPUT ======== */
 
-void editorScroll()
+void editorScroll(void)
 {
     E.rx = 0;
     if (E.cy < E.numrows)
@@ -578,15 +677,6 @@ void editorRefreshScreen(void)
     abFree(&ab);
 }
 
-void editorSetStatusMessage(const char *fmt, ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-    vsnprintf(E.statusmsg, sizeof(E.statusmsg), fmt, ap);
-    va_end(ap);
-    E.statusmsg_time = time(NULL);
-}
-
 /* ======== INIT ======== */
 
 // Initializes the editor (sets cursor position and gets terminal size)
@@ -619,7 +709,7 @@ int main(int argc, char *argv[])
         editorOpen(argv[1]);
     }
 
-    editorSetStatusMessage("HELP: Ctrl-Q = quit");
+    editorSetStatusMessage("HELP: Ctrl-S = save | Ctrl-Q = quit");
 
     while (1)
     {
