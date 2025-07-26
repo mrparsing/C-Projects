@@ -44,6 +44,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[N-Queens Solver](./project/8_queens/)** — Place **N queens** on an N×N chessboard so none attack each other (no same row, column, or diagonal).
 - **[Tower of Hanoi](./project/hanoi/)** — Classic recursive solution to the **Tower of Hanoi**.
 - **[Magic Square](./project/magic_square/)** — This program builds a **magic square of size N×N** using the classic *Siamese method*.
+- **[Monte Carlo π Estimator](./project/pi_estimation/)** — This program estimates **π** by randomly sampling points in a square and counting how many fall inside an inscribed circle.
 
 ---
 
