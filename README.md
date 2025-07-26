@@ -31,6 +31,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Pascal's Triangle](./project/pascal_triangle/)** — A C program that requests an integer `row ≥ 1` from the user and prints **Pascal’s Triangle** up to that row.
 - **[Credit Card Validator](./project/credit_card_validator/)** — A command‑line utility that checks whether a numeric string passes the **Luhn checksum**.
 - **[Collatz Conjecture](./project/collatz_conjecture/)** — Given an integer **n**, this program repeatedly applies the Collatz rules.
+- **[FizzBuzz](./project/fizzbuzz/)** — A program that prints numbers from **1 to *n***, replacing multiples of 3 with **"Fizz"**, multiples of 5 with **"Buzz"**, and multiples of both with **"FizzBuzz"**.
 
 ---
 
