@@ -42,6 +42,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Mandelbrot Set](./project/mandelbrot_set/)** — Render the Mandelbrot set to an SDL window.  
 - **[Pong game](./project/pong_game/)** — A simple two-player Pong clone in C using **SDL2** and **SDL\_ttf**, with a basic victory screen.  
 - **[N-Queens Solver](./project/8_queens/)** — Place **N queens** on an N×N chessboard so none attack each other (no same row, column, or diagonal).
+- **[Tower of Hanoi](./project/hanoi/)** — Classic recursive solution to the **Tower of Hanoi**.
 
 ---
 
