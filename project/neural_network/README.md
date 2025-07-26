@@ -7,9 +7,9 @@ A minimal multi‑layer perceptron that learns the XOR function using **stochast
 ## 1. Build & Run
 
 ```bash
-cc xor.c -lm -o xor
-./xor            # random seed from time()
-./xor 12345      # deterministic seed
+cc nn.c -lm -o nn
+./nn            # random seed from time()
+./nn 12345      # deterministic seed
 ```
 
 > Needs only the C standard library + `-lm` for `exp`, `log`, `sqrt`.

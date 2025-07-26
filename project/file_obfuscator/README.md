@@ -22,15 +22,13 @@ A very small C utility that applies a **bitwise NOT** or a **byte-wise XOR** to 
 ### GCC / Clang
 
 ```bash
-gcc -O2 -Wall -Wextra -pedantic -o bytexform bytexform.c
+gcc -O2 -Wall -Wextra -pedantic -o file_obfuscator file_obfuscator.c
 ```
-
-(Replace `bytexform.c` with your source filename.)
 
 ### Example with warnings treated as errors
 
 ```bash
-gcc -O2 -Wall -Wextra -Wconversion -Werror -o bytexform bytexform.c
+gcc -O2 -Wall -Wextra -Wconversion -Werror -o file_obfuscator file_obfuscator.c
 ```
 
 ---
@@ -39,8 +37,8 @@ gcc -O2 -Wall -Wextra -Wconversion -Werror -o bytexform bytexform.c
 
 ```
 Usage:
-  ./bytexform not  input.txt output.bin
-  ./bytexform xor <key> input.bin output.bin
+  ./file_obfuscator not  input.txt output.bin
+  ./file_obfuscator xor <key> input.bin output.bin
 ```
 
 Parameters:
@@ -57,25 +55,25 @@ Parameters:
 Invert a text file:
 
 ```bash
-./bytexform not message.txt message.inv
+./file_obfuscator not message.txt message.inv
 ```
 
 Restore the original (apply NOT again):
 
 ```bash
-./bytexform not message.inv message_restored.txt
+./file_obfuscator not message.inv message_restored.txt
 ```
 
 XOR a PNG with key 42:
 
 ```bash
-./bytexform xor 42 image.png image.xor
+./file_obfuscator xor 42 image.png image.xor
 ```
 
 Revert:
 
 ```bash
-./bytexform xor 42 image.xor image_restored.png
+./file_obfuscator xor 42 image.xor image_restored.png
 ```
 
 ---

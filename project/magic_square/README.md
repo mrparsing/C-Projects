@@ -9,8 +9,8 @@ This program builds a **magic square of size N×N (odd N only)** using the class
 ## 1. Build & Run
 
 ```bash
-cc magic.c -o magic
-./magic
+cc magic_square.c -o magic_square
+./magic_square
 ```
 
 The code uses a `#define N 3`. Change it to any odd number (5, 7, 9, …) and recompile.

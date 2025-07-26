@@ -18,21 +18,21 @@ A tiny command‑line program that loads a **WAV** file and plays it once using 
 ### macOS (Homebrew SDL2)
 
 ```bash
-clang main.c -I"$(brew --prefix)/include" -L"$(brew --prefix)/lib" -lSDL2 -o sdlplay
+clang audio.c -I"$(brew --prefix)/include" -L"$(brew --prefix)/lib" -lSDL2 -o sdlplay
 ```
 
 ### Linux (Debian/Ubuntu)
 
 ```bash
 sudo apt install libsdl2-dev
-cc main.c -lSDL2 -o sdlplay
+cc audio.c -lSDL2 -o sdlplay
 ```
 
 ### Windows (MSYS2 MinGW64)
 
 ```bash
 pacman -S mingw-w64-x86_64-SDL2
-x86_64-w64-mingw32-gcc main.c -lSDL2 -o sdlplay.exe
+x86_64-w64-mingw32-gcc audio.c -lSDL2 -o audio.exe
 ```
 
 Ensure the SDL2 *development* package is installed (headers + import libs) — not just runtime DLLs.
@@ -42,7 +42,7 @@ Ensure the SDL2 *development* package is installed (headers + import libs) — n
 ## 3. Usage
 
 ```bash
-./sdlplay sound.wav
+./audio sound.wav
 ```
 
 If you forget the argument:

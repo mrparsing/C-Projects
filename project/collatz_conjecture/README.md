@@ -12,14 +12,14 @@ Given an integer **n**, this program repeatedly applies the Collatz rules.
 ## 1. Build & Run
 
 ```bash
-cc collatz.c -o collatz
-./collatz 37
+cc collatz_conjecture.c -o collatz_conjecture
+./collatz_conjecture 37
 ```
 
 If you forget the argument:
 
 ```
-Usage: ./collatz <number>
+Usage: ./collatz_conjecture <number>
 ```
 
 ---

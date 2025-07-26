@@ -9,14 +9,14 @@ A minimal example program that performs an HTTP **GET** request using **libcurl*
 ### Linux / macOS (pkg-config available)
 
 ```bash
-gcc main.c $(pkg-config --cflags --libs libcurl) -o curl_client
-./curl_client
+gcc curl.c $(pkg-config --cflags --libs libcurl) -o curl
+./curl
 ```
 
 If you do **not** use `pkg-config`, specify includes / libs manually (paths differ per system):
 
 ```bash
-gcc main.c -I/usr/include -lcurl -o curl_client
+gcc curl.c -I/usr/include -lcurl -o curl
 ```
 
 On macOS with Homebrew:
@@ -37,7 +37,7 @@ pacman -S mingw-w64-x86_64-curl
 Compile:
 
 ```bash
-x86_64-w64-mingw32-gcc main.c -lcurl -o curl_client.exe
+x86_64-w64-mingw32-gcc curl.c -lcurl -o curl.exe
 ```
 
 Run inside the same shell so runtime DLLs are found.

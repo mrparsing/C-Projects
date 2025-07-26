@@ -13,7 +13,7 @@ A real‑time visualisation of the famous planar **figure‑8 three‑body orbit
 ### Build (Linux / macOS)
 
 ```bash
-cc three_body.c -lm -lSDL2 -o three_body
+cc 3_body.c -lm -lSDL2 -o 3_body
 ```
 
 > Requires the SDL2 development package (`libsdl2-dev` on Debian/Ubuntu, `brew install sdl2` on macOS).
@@ -21,7 +21,7 @@ cc three_body.c -lm -lSDL2 -o three_body
 ### Run
 
 ```bash
-./three_body
+./3_body
 ```
 
 A window **1200 × 800** opens; three coloured blobs chase each other in a repeating figure‑8. Close the window or press the close button to quit.

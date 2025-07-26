@@ -18,8 +18,8 @@ A program that renders a spinning 3‑D cube **inside your terminal** using ASCI
 ### Linux / macOS
 
 ```bash
-cc ascii_cube.c -lm -o ascii_cube
-./ascii_cube
+cc terminal_cube.c -lm -o terminal_cube
+./terminal_cube
 ```
 
 * `-lm` links against the math library (`sin`, `cos`).
@@ -30,8 +30,8 @@ cc ascii_cube.c -lm -o ascii_cube
 * Use MSYS2/MinGW or WSL to build:
 
   ```bash
-  gcc ascii_cube.c -lm -o ascii_cube.exe
-  ./ascii_cube.exe
+  gcc terminal_cube.c -lm -o terminal_cube.exe
+  ./terminal_cube.exe
   ```
 * The program uses ANSI escape sequences (`"\x1b[H"`, `"\x1b[2J"`). Ensure your terminal supports them (Windows Terminal, PowerShell with VT sequences enabled, etc.).
 

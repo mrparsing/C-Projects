@@ -7,8 +7,8 @@ A simple Sieve of Eratosthenes.
 ## 1. Build & Run
 
 ```bash
-cc filter_235.c -o filter235
-./filter235 50
+cc sieve_of_eratosthenes.c -o sieve_of_eratosthenes
+./sieve_of_eratosthenes 50
 ```
 
 **Output:**

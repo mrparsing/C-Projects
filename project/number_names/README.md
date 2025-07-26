@@ -7,8 +7,8 @@ A compact C program that converts an integer in the range **0 – 9999** int
 ## 1. Build & Run
 
 ```bash
-cc number_to_words.c -o num2words
-./num2words 1987   # prints: "one thousand nine hundred eighty seven"
+cc number_names.c -o number_names
+./number_names 1987   # prints: "one thousand nine hundred eighty seven"
 ```
 
 If you omit the argument or pass a value outside `0–9999`, the program prints a usage / range error.

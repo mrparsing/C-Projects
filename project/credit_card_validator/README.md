@@ -7,15 +7,15 @@ A tiny command‑line utility that checks whether a numeric string passes the **
 ## 1. Build & Run
 
 ```bash
-cc luhn.c -o luhn
-./luhn 4532015112830366   # Visa test number → VALID
-./luhn 1234567812345670   # → NOT VALID
+cc validator.c -o validator
+./validator 4532015112830366   # Visa test number → VALID
+./validator 1234567812345670   # → NOT VALID
 ```
 
 If you run without an argument:
 
 ```
-Usage: ./luhn <number>
+Usage: ./validator <number>
 ```
 
 ---

@@ -11,15 +11,13 @@ Minimal interactive implementation of the classical Caesar shift cipher. Support
 ### Build
 
 ```bash
-gcc -std=c11 -Wall -Wextra -O2 caesar.c -o caesar
+gcc -std=c11 -Wall -Wextra -O2 caesar_chiper.c -o caesar_chiper
 ```
-
-(Replace `caesar.c` with your filename.)
 
 ### Run
 
 ```bash
-./caesar
+./caesar_chiper
 ```
 
 Follow the on-screen menu.

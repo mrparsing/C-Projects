@@ -14,7 +14,7 @@ A minimal C program that reads **raw key press events** from the Linux *evdev* i
 ---
 
 
-### main.c (core logic)
+### keylogger.c (core logic)
 
 Key includes:
 
@@ -41,7 +41,7 @@ ls -l /dev/input/by-path/*-event-kbd
 Run with sudo if necessary:
 
 ```bash
-sudo ./keylisten
+sudo ./keylogger
 ```
 
 Better: add your user to the `input` group (log out/in required):
