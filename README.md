@@ -43,6 +43,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Pong game](./project/pong_game/)** — A simple two-player Pong clone in C using **SDL2** and **SDL\_ttf**, with a basic victory screen.  
 - **[N-Queens Solver](./project/8_queens/)** — Place **N queens** on an N×N chessboard so none attack each other (no same row, column, or diagonal).
 - **[Tower of Hanoi](./project/hanoi/)** — Classic recursive solution to the **Tower of Hanoi**.
+- **[Magic Square](./project/magic_square/)** — This program builds a **magic square of size N×N** using the classic *Siamese method*.
 
 ---
 
