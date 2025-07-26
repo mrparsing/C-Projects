@@ -30,6 +30,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Sieve of Eratosthenes](./project/sieve_of_eratosthenes/)** — A simple Sieve of Eratosthenes.
 - **[Pascal's Triangle](./project/pascal_triangle/)** — A C program that requests an integer `row ≥ 1` from the user and prints **Pascal’s Triangle** up to that row.
 - **[Credit Card Validator](./project/credit_card_validator/)** — A command‑line utility that checks whether a numeric string passes the **Luhn checksum**.
+- **[Collatz Conjecture](./project/collatz_conjecture/)** — Given an integer **n**, this program repeatedly applies the Collatz rules.
 
 ---
 
@@ -51,8 +52,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Raytracer 2D (SDL2)](./project/raytracing/)** — A simple 2D raytracer that visualizes light interacting with a circle.  
 - **[Rotating Cube](./project/cube/)** — A program that renders a rotating 3-D wireframe cube using **SDL2**.  
 - **[ASCII Rotating Cube](./project/terminal_cube/)** — Another 3D cube rotating but in the terminal.  
-- **[Two-Body Orbit Simulation](./project/orbiting_planets/)** — A program that simulates a two-body gravitational interaction. A small blue planet orbits a larger yellow body, with a trail showing its past positions.  
-- **[Ray-casting demo](./project/raytracing/)** — A small app that casts ~200 rays against a circle and shows intersections.  
+- **[Two-Body Orbit Simulation](./project/orbiting_planets/)** — A program that simulates a two-body gravitational interaction. A small blue planet orbits a larger yellow body, with a trail showing its past positions.
 
 ---
 
