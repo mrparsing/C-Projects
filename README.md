@@ -46,6 +46,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Tower of Hanoi](./project/hanoi/)** — Classic recursive solution to the **Tower of Hanoi**.
 - **[Magic Square](./project/magic_square/)** — This program builds a **magic square of size N×N** using the classic *Siamese method*.
 - **[Monte Carlo π Estimator](./project/pi_estimation/)** — This program estimates **π** by randomly sampling points in a square and counting how many fall inside an inscribed circle.
+- **[Barnsley Fern](./project/barnsley_fern/)** — A program that renders the classic **Barnsley Fern fractal**.
 
 ---
 
@@ -74,7 +75,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 
 ### ⭐⭐⭐⭐⭐ (5 / 5)
 
-- **[AES-128](./project/aes/)** — A **minimal implementation** of core AES-128 encryption & decryption steps in C.
+- **[AES-128](./project/aes/)** — A **minimal implementation** of core AES-128 encryption & decryption steps.
 - **[Liquid simulation](./project/liquid%20simulation/)** — A program that simulates water flowing through a grid of square cells using a very simple cellular model.  
 
 ---

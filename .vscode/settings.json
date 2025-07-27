@@ -7,6 +7,7 @@
         "stdio.h": "c",
         "__locale": "c",
         "locale": "c",
-        "termios.h": "c"
+        "termios.h": "c",
+        "stdbool.h": "c"
     }
 }
