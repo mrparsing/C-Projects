@@ -11,6 +11,8 @@ A program that renders the classic **Barnsley Fern fractal** using SDL2. It appl
 * Window stays open until you close it (simple event loop)
 * Easily tweakable iterations, colors, resolution
 
+![Demo](../assets/barnsley_fern.png)
+
 ---
 
 ## 2. Build & Run

@@ -60,7 +60,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Rotating Cube](./project/cube/)** — A program that renders a rotating 3-D wireframe cube using **SDL2**.  
 - **[ASCII Rotating Cube](./project/terminal_cube/)** — Another 3D cube rotating but in the terminal.  
 - **[Two-Body Orbit Simulation](./project/orbiting_planets/)** — A program that simulates a two-body gravitational interaction. A small blue planet orbits a larger yellow body, with a trail showing its past positions.
-
+- **[Tiny Regex/Grep](./project/regex/)** — A super–small regular‑expression engine (supports `.` `*` `^` `$`) and a mini **grep** that scans stdin or files line‑by‑line.
 ---
 
 ### ⭐⭐⭐⭐☆ (4 / 5)
