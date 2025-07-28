@@ -33,6 +33,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Collatz Conjecture](./project/collatz_conjecture/)** — Given an integer **n**, this program repeatedly applies the Collatz rules.
 - **[FizzBuzz](./project/fizzbuzz/)** — A program that prints numbers from **1 to *n***, replacing multiples of 3 with **"Fizz"**, multiples of 5 with **"Buzz"**, and multiples of both with **"FizzBuzz"**.
 - **[TCP Client/Server](./project/tcp_client_server/)** — A simple implementation of a TCP client and server.
+- **[Temperature Converter](./project/temperature_converter/)** — A simple command-line C program to convert temperatures between Celsius (C), Fahrenheit (F), and Kelvin (K).
 
 ---
 
