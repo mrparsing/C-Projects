@@ -107,9 +107,12 @@ int main()
 
     while (!QUIT)
     {
+        move(line, 0);
+        clrtoeol(); // pulisce tutta la riga prima di scrivere
         mvprintw(line, 0, "> ");
         mvprintw(line, 2, "%.*s", (int)command.count, command.data);
         ch = getch();
+
         switch (ch)
         {
         case ctrl('q'):
@@ -118,6 +121,11 @@ int main()
         case 10: // ENTER
             line++;
             strings_append(&command_his, &command);
+            if (command.count > 0)
+            {
+                mvprintw(line, 0, "sh: %.*s: command not found", (int)command.count, command.data);
+                line++;
+            }
             string_free(&command);
             break;
         default:
