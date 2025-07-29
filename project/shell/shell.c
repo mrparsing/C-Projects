@@ -36,7 +36,7 @@
         {                                                                                    \
             (da)->capacity = (da)->capacity == 0 ? DATA_START_CAPACITY : (da)->capacity * 2; \
             void *new = calloc((da)->capacity, sizeof(char));                                \
-            ASSERT(new, "outta ram");                                                        \
+            ASSERT(new, "out of memory");                                                    \
             memcpy(new, (da)->data, (da)->count);                                            \
             free((da)->data);                                                                \
             (da)->data = new;                                                                \
@@ -64,7 +64,7 @@ void string_append(String *s, char c)
     {
         s->capacity = s->capacity == 0 ? DATA_START_CAPACITY : s->capacity * 2;
         char *new = calloc(s->capacity, sizeof(char));
-        ASSERT(new, "no mem");
+        ASSERT(new, "no memory");
         memcpy(new, s->data, s->count);
         free(s->data);
         s->data = new;
@@ -78,16 +78,16 @@ void strings_append(Strings *arr, String *s)
     {
         arr->capacity = arr->capacity == 0 ? 16 : arr->capacity * 2;
         String *new = calloc(arr->capacity, sizeof(String));
-        ASSERT(new, "no mem");
+        ASSERT(new, "no memory");
         memcpy(new, arr->data, arr->count * sizeof(String));
         free(arr->data);
         arr->data = new;
     }
 
-    // Deep copy della stringa
+    // Deep copy of the string
     String copy = {0};
     copy.data = malloc(s->count);
-    ASSERT(copy.data, "no mem");
+    ASSERT(copy.data, "no memory");
     memcpy(copy.data, s->data, s->count);
     copy.count = s->count;
     copy.capacity = s->count;
@@ -107,7 +107,7 @@ void string_insert(String *s, size_t pos, char c)
     {
         s->capacity = s->capacity == 0 ? DATA_START_CAPACITY : s->capacity * 2;
         char *new = calloc(s->capacity, sizeof(char));
-        ASSERT(new, "no mem");
+        ASSERT(new, "no memory");
         memcpy(new, s->data, pos);
         memcpy(new + pos + 1, s->data + pos, s->count - pos);
         free(s->data);
@@ -125,7 +125,7 @@ void string_insert(String *s, size_t pos, char c)
 char *string_to_cstr(String *s)
 {
     char *res = malloc(s->count + 1);
-    ASSERT(res, "no mem");
+    ASSERT(res, "no memory");
     memcpy(res, s->data, s->count);
     res[s->count] = '\0';
     return res;
@@ -136,10 +136,10 @@ char **tokenize(const char *cmd, int *argc_out)
     int capacity = 8;
     int argc = 0;
     char **argv = malloc(capacity * sizeof(char *));
-    ASSERT(argv, "no mem");
+    ASSERT(argv, "no memory");
 
     char *cmd_copy = strdup(cmd);
-    ASSERT(cmd_copy, "no mem");
+    ASSERT(cmd_copy, "no memory");
     char *token = strtok(cmd_copy, " \t\n");
     while (token)
     {
@@ -147,7 +147,7 @@ char **tokenize(const char *cmd, int *argc_out)
         {
             capacity *= 2;
             argv = realloc(argv, capacity * sizeof(char *));
-            ASSERT(argv, "no mem");
+            ASSERT(argv, "no memory");
         }
         argv[argc++] = strdup(token);
         token = strtok(NULL, " \t\n");
@@ -169,12 +169,12 @@ int main()
     bool QUIT = false;
     int ch;
     String command = {0};
-    Strings command_his = {0};
+    Strings command_history = {0};
     size_t line = 0;
     size_t current_command = 0;
     size_t command_max = 0;
-    size_t cursor = 0;                  // posizione attuale del cursore nella riga
-    ssize_t current_command_index = -1; // -1 = nessun comando selezionato
+    size_t cursor = 0;                   // current cursor position in the line
+    ssize_t current_command_index = -1;  // -1 = no command selected
     bool editing_history = false;
 
     while (!QUIT)
@@ -188,7 +188,7 @@ int main()
         }
 
         move(line, 0);
-        clrtoeol(); // pulisce tutta la riga prima di scrivere
+        clrtoeol(); // clear the entire line before writing
         mvprintw(line, 0, "> ");
         mvprintw(line, 2, "%.*s", (int)command.count, command.data);
         move(line, 2 + cursor);
@@ -200,12 +200,12 @@ int main()
             QUIT = true;
             break;
         case 10: // ENTER
-            // Finalizza la riga del comando sullo schermo e vai a capo
+            // Finalize the command line on screen and go to next line
             mvprintw(line, 0, "> %.*s", (int)command.count, command.data);
             line++;
-            move(line, 0); // Sposta il cursore sulla nuova linea
+            move(line, 0); // Move cursor to the new line
 
-            strings_append(&command_his, &command);
+            strings_append(&command_history, &command);
 
             if (command.count > 0)
             {
@@ -213,7 +213,7 @@ int main()
                 int argc;
                 char **argv = tokenize(cmd_cstr, &argc);
 
-                // ✅ 1. Crea una pipe
+                // ✅ 1. Create a pipe
                 int pipefd[2];
                 if (pipe(pipefd) == -1)
                 {
@@ -230,13 +230,13 @@ int main()
 
                 if (pid == 0)
                 {
-                    // --- Processo Figlio ---
-                    // NON abbiamo bisogno di endwin() qui
+                    // --- Child Process ---
+                    // We don't need endwin() here
 
-                    // ✅ 2. Redireziona stdout alla pipe
-                    close(pipefd[0]);               // Il figlio non legge dalla pipe
-                    dup2(pipefd[1], STDOUT_FILENO); // Redireziona stdout
-                    dup2(pipefd[1], STDERR_FILENO); // Redireziona anche stderr (opzionale)
+                    // ✅ 2. Redirect stdout to the pipe
+                    close(pipefd[0]);                // Child doesn't read from pipe
+                    dup2(pipefd[1], STDOUT_FILENO);  // Redirect stdout
+                    dup2(pipefd[1], STDERR_FILENO);  // Also redirect stderr (optional)
                     close(pipefd[1]);
 
                     execvp(argv[0], argv);
@@ -245,21 +245,21 @@ int main()
                 }
                 else
                 {
-                    // --- Processo Padre ---
-                    close(pipefd[1]); // Il padre non scrive sulla pipe
+                    // --- Parent Process ---
+                    close(pipefd[1]); // Parent doesn't write to pipe
 
-                    // ✅ 3. Leggi l'output dalla pipe e stampalo con ncurses
+                    // ✅ 3. Read output from pipe and print it with ncurses
                     char buffer[256];
                     ssize_t nbytes;
                     while ((nbytes = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0)
                     {
                         buffer[nbytes] = '\0';
-                        // Stampa il buffer carattere per carattere per gestire correttamente i newline
+                        // Print buffer character by character to properly handle newlines
                         for (ssize_t i = 0; i < nbytes; ++i)
                         {
                             if (buffer[i] == '\n')
                             {
-                                clrtoeol(); // Pulisce il resto della riga
+                                clrtoeol(); // Clear rest of line
                                 line++;
                                 move(line, 0);
                             }
@@ -281,23 +281,23 @@ int main()
                 free(cmd_cstr);
             }
 
-            // Resetta per il prossimo comando
+            // Reset for next command
             string_free(&command);
             cursor = 0;
             current_command_index = -1;
             editing_history = false;
 
-            // Assicura che la linea non sia vuota per il prossimo prompt
+            // Ensure line is not empty for next prompt
             clrtoeol();
             break;
         case UP_ARROW:
-            if (command_his.count > 0 && current_command_index + 1 < (ssize_t)command_his.count)
+            if (command_history.count > 0 && current_command_index + 1 < (ssize_t)command_history.count)
             {
                 current_command_index++;
                 string_free(&command);
-                String *src = &command_his.data[command_his.count - 1 - current_command_index];
+                String *src = &command_history.data[command_history.count - 1 - current_command_index];
                 command.data = malloc(src->count);
-                ASSERT(command.data, "no mem");
+                ASSERT(command.data, "no memory");
                 memcpy(command.data, src->data, src->count);
                 command.count = src->count;
                 command.capacity = src->count;
@@ -311,9 +311,9 @@ int main()
             {
                 current_command_index--;
                 string_free(&command);
-                String *src = &command_his.data[command_his.count - 1 - current_command_index];
+                String *src = &command_history.data[command_history.count - 1 - current_command_index];
                 command.data = malloc(src->count);
-                ASSERT(command.data, "no mem");
+                ASSERT(command.data, "no memory");
                 memcpy(command.data, src->data, src->count);
                 command.count = src->count;
                 command.capacity = src->count;
@@ -348,10 +348,10 @@ int main()
         default:
             if (editing_history)
             {
-                // Stai per modificare un comando preso dalla cronologia → fai una copia per evitare modifiche distruttive
+                // About to modify a command from history → make a copy to avoid destructive changes
                 String copy = {0};
                 copy.data = malloc(command.count);
-                ASSERT(copy.data, "no mem");
+                ASSERT(copy.data, "no memory");
                 memcpy(copy.data, command.data, command.count);
                 copy.count = command.count;
                 copy.capacity = command.count;
@@ -373,9 +373,9 @@ int main()
     endwin();
 
     // Clean up
-    for (size_t i = 0; i < command_his.count; i++)
-        string_free(&command_his.data[i]);
-    free(command_his.data);
+    for (size_t i = 0; i < command_history.count; i++)
+        string_free(&command_history.data[i]);
+    free(command_history.data);
 
     return 0;
 }

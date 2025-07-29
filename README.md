@@ -71,6 +71,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[MD5 Implementation](./project/md5/)** — Implementation of the MD5 algorithm.  
 - **[RSA Encryption and Decryption with GMP](./project/rsa/)** — RSA implementation using C and the GMP library for handling big numbers.  
 - **[Sudoku Generator & Solver](./project/sudoku/)** — Generates a **fully‑valid Sudoku** and solves it with backtracking.
+- **[Shell](./project/shell/)** — A minimal command-line shell-like emulator written in C using the ncurses library.
 
 
 ---
