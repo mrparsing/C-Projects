@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <fcntl.h>
 
 #define DOWN_ARROW 258
 #define UP_ARROW 259
@@ -119,6 +122,43 @@ void string_insert(String *s, size_t pos, char c)
     s->count++;
 }
 
+char *string_to_cstr(String *s)
+{
+    char *res = malloc(s->count + 1);
+    ASSERT(res, "no mem");
+    memcpy(res, s->data, s->count);
+    res[s->count] = '\0';
+    return res;
+}
+
+char **tokenize(const char *cmd, int *argc_out)
+{
+    int capacity = 8;
+    int argc = 0;
+    char **argv = malloc(capacity * sizeof(char *));
+    ASSERT(argv, "no mem");
+
+    char *cmd_copy = strdup(cmd);
+    ASSERT(cmd_copy, "no mem");
+    char *token = strtok(cmd_copy, " \t\n");
+    while (token)
+    {
+        if (argc >= capacity)
+        {
+            capacity *= 2;
+            argv = realloc(argv, capacity * sizeof(char *));
+            ASSERT(argv, "no mem");
+        }
+        argv[argc++] = strdup(token);
+        token = strtok(NULL, " \t\n");
+    }
+
+    argv[argc] = NULL;
+    *argc_out = argc;
+    free(cmd_copy);
+    return argv;
+}
+
 int main()
 {
     initscr();
@@ -139,6 +179,14 @@ int main()
 
     while (!QUIT)
     {
+        int rows, cols;
+        getmaxyx(stdscr, rows, cols);
+        if (line >= rows)
+        {
+            scrl(10);
+            line = rows - 19;
+        }
+
         move(line, 0);
         clrtoeol(); // pulisce tutta la riga prima di scrivere
         mvprintw(line, 0, "> ");
@@ -152,19 +200,95 @@ int main()
             QUIT = true;
             break;
         case 10: // ENTER
+            // Finalizza la riga del comando sullo schermo e vai a capo
+            mvprintw(line, 0, "> %.*s", (int)command.count, command.data);
             line++;
+            move(line, 0); // Sposta il cursore sulla nuova linea
+
             strings_append(&command_his, &command);
+
             if (command.count > 0)
             {
-                mvprintw(line, 0, "sh: %.*s: command not found", (int)command.count, command.data);
-                line++;
+                char *cmd_cstr = string_to_cstr(&command);
+                int argc;
+                char **argv = tokenize(cmd_cstr, &argc);
+
+                // ✅ 1. Crea una pipe
+                int pipefd[2];
+                if (pipe(pipefd) == -1)
+                {
+                    perror("pipe");
+                    break;
+                }
+
+                pid_t pid = fork();
+                if (pid == -1)
+                {
+                    perror("fork");
+                    break;
+                }
+
+                if (pid == 0)
+                {
+                    // --- Processo Figlio ---
+                    // NON abbiamo bisogno di endwin() qui
+
+                    // ✅ 2. Redireziona stdout alla pipe
+                    close(pipefd[0]);               // Il figlio non legge dalla pipe
+                    dup2(pipefd[1], STDOUT_FILENO); // Redireziona stdout
+                    dup2(pipefd[1], STDERR_FILENO); // Redireziona anche stderr (opzionale)
+                    close(pipefd[1]);
+
+                    execvp(argv[0], argv);
+                    fprintf(stderr, "sh: %s: command not found\n", argv[0]);
+                    exit(127);
+                }
+                else
+                {
+                    // --- Processo Padre ---
+                    close(pipefd[1]); // Il padre non scrive sulla pipe
+
+                    // ✅ 3. Leggi l'output dalla pipe e stampalo con ncurses
+                    char buffer[256];
+                    ssize_t nbytes;
+                    while ((nbytes = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0)
+                    {
+                        buffer[nbytes] = '\0';
+                        // Stampa il buffer carattere per carattere per gestire correttamente i newline
+                        for (ssize_t i = 0; i < nbytes; ++i)
+                        {
+                            if (buffer[i] == '\n')
+                            {
+                                clrtoeol(); // Pulisce il resto della riga
+                                line++;
+                                move(line, 0);
+                            }
+                            else
+                            {
+                                printw("%c", buffer[i]);
+                            }
+                        }
+                    }
+
+                    close(pipefd[0]);
+                    waitpid(pid, NULL, 0);
+                }
+
+                // Cleanup
+                for (int i = 0; i < argc; i++)
+                    free(argv[i]);
+                free(argv);
+                free(cmd_cstr);
             }
-            if (command_his.count > command_max)
-                command_max = command_his.count;
+
+            // Resetta per il prossimo comando
             string_free(&command);
             cursor = 0;
-            editing_history = false;
             current_command_index = -1;
+            editing_history = false;
+
+            // Assicura che la linea non sia vuota per il prossimo prompt
+            clrtoeol();
             break;
         case UP_ARROW:
             if (command_his.count > 0 && current_command_index + 1 < (ssize_t)command_his.count)
@@ -242,6 +366,7 @@ int main()
             cursor++;
             break;
         }
+        refresh();
     }
 
     refresh();
