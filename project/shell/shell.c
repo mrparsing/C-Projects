@@ -4,6 +4,9 @@
 #include <stdbool.h>
 #include <string.h>
 
+#define DOWN_ARROW 258
+#define UP_ARROW 259
+
 #define ctrl(x) ((x) & 0x1f)
 
 #define DATA_START_CAPACITY 128
@@ -98,12 +101,15 @@ int main()
     initscr();
     noecho();
     raw();
+    keypad(stdscr, TRUE);
 
     bool QUIT = false;
     int ch;
     String command = {0};
     Strings command_his = {0};
     size_t line = 0;
+    size_t current_command = 0;
+    size_t command_max = 0;
 
     while (!QUIT)
     {
@@ -126,7 +132,23 @@ int main()
                 mvprintw(line, 0, "sh: %.*s: command not found", (int)command.count, command.data);
                 line++;
             }
+            if (command_his.count > command_max)
+                command_max = command_his.count;
             string_free(&command);
+            break;
+        case UP_ARROW:
+            if (command_his.count > 0)
+            {
+                command_his.count--;
+                command = command_his.data[command_his.count];
+            }
+            break;
+        case DOWN_ARROW:
+            if (command_his.count < command_max)
+            {
+                command_his.count++;
+                command = command_his.data[command_his.count];
+            }
             break;
         default:
             string_append(&command, ch);
