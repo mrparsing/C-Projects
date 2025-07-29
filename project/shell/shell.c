@@ -6,6 +6,8 @@
 
 #define DOWN_ARROW 258
 #define UP_ARROW 259
+#define LEFT_ARROW 260
+#define RIGHT_ARROW 261
 
 #define ctrl(x) ((x) & 0x1f)
 
@@ -96,6 +98,27 @@ void string_free(String *s)
     s->count = s->capacity = 0;
 }
 
+void string_insert(String *s, size_t pos, char c)
+{
+    if (s->count >= s->capacity)
+    {
+        s->capacity = s->capacity == 0 ? DATA_START_CAPACITY : s->capacity * 2;
+        char *new = calloc(s->capacity, sizeof(char));
+        ASSERT(new, "no mem");
+        memcpy(new, s->data, pos);
+        memcpy(new + pos + 1, s->data + pos, s->count - pos);
+        free(s->data);
+        s->data = new;
+    }
+    else
+    {
+        memmove(s->data + pos + 1, s->data + pos, s->count - pos);
+    }
+
+    s->data[pos] = c;
+    s->count++;
+}
+
 int main()
 {
     initscr();
@@ -110,6 +133,9 @@ int main()
     size_t line = 0;
     size_t current_command = 0;
     size_t command_max = 0;
+    size_t cursor = 0;                  // posizione attuale del cursore nella riga
+    ssize_t current_command_index = -1; // -1 = nessun comando selezionato
+    bool editing_history = false;
 
     while (!QUIT)
     {
@@ -117,6 +143,7 @@ int main()
         clrtoeol(); // pulisce tutta la riga prima di scrivere
         mvprintw(line, 0, "> ");
         mvprintw(line, 2, "%.*s", (int)command.count, command.data);
+        move(line, 2 + cursor);
         ch = getch();
 
         switch (ch)
@@ -135,23 +162,75 @@ int main()
             if (command_his.count > command_max)
                 command_max = command_his.count;
             string_free(&command);
+            cursor = 0;
+            editing_history = false;
+            current_command_index = -1;
             break;
         case UP_ARROW:
-            if (command_his.count > 0)
+            if (command_his.count > 0 && current_command_index + 1 < (ssize_t)command_his.count)
             {
-                command_his.count--;
-                command = command_his.data[command_his.count];
+                current_command_index++;
+                string_free(&command);
+                String *src = &command_his.data[command_his.count - 1 - current_command_index];
+                command.data = malloc(src->count);
+                ASSERT(command.data, "no mem");
+                memcpy(command.data, src->data, src->count);
+                command.count = src->count;
+                command.capacity = src->count;
+                cursor = command.count;
+                editing_history = true;
             }
             break;
+
         case DOWN_ARROW:
-            if (command_his.count < command_max)
+            if (current_command_index > 0)
             {
-                command_his.count++;
-                command = command_his.data[command_his.count];
+                current_command_index--;
+                string_free(&command);
+                String *src = &command_his.data[command_his.count - 1 - current_command_index];
+                command.data = malloc(src->count);
+                ASSERT(command.data, "no mem");
+                memcpy(command.data, src->data, src->count);
+                command.count = src->count;
+                command.capacity = src->count;
+                cursor = command.count;
+                editing_history = true;
             }
+            else if (current_command_index == 0)
+            {
+                current_command_index = -1;
+                string_free(&command);
+                command.data = NULL;
+                command.count = command.capacity = 0;
+            }
+            break;
+        case LEFT_ARROW:
+            if (cursor > 0)
+                cursor--;
+            break;
+        case RIGHT_ARROW:
+            if (cursor < command.count)
+                cursor++;
             break;
         default:
-            string_append(&command, ch);
+            if (editing_history)
+            {
+                // Stai per modificare un comando preso dalla cronologia → fai una copia per evitare modifiche distruttive
+                String copy = {0};
+                copy.data = malloc(command.count);
+                ASSERT(copy.data, "no mem");
+                memcpy(copy.data, command.data, command.count);
+                copy.count = command.count;
+                copy.capacity = command.count;
+
+                string_free(&command);
+                command = copy;
+
+                current_command_index = -1;
+                editing_history = false;
+            }
+            string_insert(&command, cursor, ch);
+            cursor++;
             break;
         }
     }
