@@ -212,6 +212,15 @@ int main()
             if (cursor < command.count)
                 cursor++;
             break;
+        case 127: // BACKSPACE (ASCII)
+        case KEY_BACKSPACE:
+            if (cursor > 0)
+            {
+                memmove(command.data + cursor - 1, command.data + cursor, command.count - cursor);
+                command.count--;
+                cursor--;
+            }
+            break;
         default:
             if (editing_history)
             {
