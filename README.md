@@ -73,11 +73,11 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Sudoku Generator & Solver](./project/sudoku/)** — Generates a **fully‑valid Sudoku** and solves it with backtracking.
 - **[Shell](./project/shell/)** — A minimal command-line shell-like emulator written in C using the ncurses library.
 
-
 ---
 
 ### ⭐⭐⭐⭐⭐ (5 / 5)
 
+- **[Ping from Scratch](./project/ping_from_scratch/)** — Just reimplementing the ping command from scratch.
 - **[AES-128](./project/aes/)** — A **minimal implementation** of core AES-128 encryption & decryption steps.
 - **[Liquid simulation](./project/liquid%20simulation/)** — A program that simulates water flowing through a grid of square cells using a very simple cellular model.  
 

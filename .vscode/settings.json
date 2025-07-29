@@ -8,6 +8,7 @@
         "__locale": "c",
         "locale": "c",
         "termios.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "unistd.h": "c"
     }
 }
