@@ -10,6 +10,11 @@ This program simulates a Plinko board game using SDL2, where balls fall through 
 - [User Interaction](#user-interaction)
 - [Compilation and Execution](#compilation-and-execution)
 
+# Demo
+
+![Demo](../assets/plinko.gif)
+
+
 ## Program Overview
 
 The simulation features:
