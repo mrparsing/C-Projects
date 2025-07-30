@@ -17,7 +17,6 @@ typedef struct
 {
     double x, y, r, vy, vx;
     int snapped;
-    int removable; // Flag for removable balls
 } Circle;
 
 typedef struct
@@ -144,7 +143,6 @@ void resolve_walls_and_floor(CircleArray *circles)
                 circles->array[i].vx = 0.0;
                 circles->array[i].vy = 0.0;
                 circles->array[i].snapped = 1;
-                circles->array[i].removable = 1; // Mark as removable
             }
         }
 
@@ -309,7 +307,7 @@ void DrawLine(SDL_Surface *surface, int x0, int y0, int x1, int y1, Uint32 color
 
 void draw_slot(SDL_Surface *surface)
 {
-    int slot_height = 300;
+    int slot_height = 320;
     for (int i = 0; i < WIDTH; i += 20)
     {
         DrawLine(surface, i, HEIGHT, i, HEIGHT - slot_height, COLOR_WHITE);
@@ -385,38 +383,6 @@ void check_line_collisions(CircleArray *circles)
     }
 }
 
-// Remove balls that are off-screen or removable
-void manage_ball_limit(CircleArray *circles)
-{
-    if (circles->used <= MAX_BALLS)
-        return;
-
-    // Find removable balls (snapped and at bottom)
-    for (size_t i = 0; i < circles->used; i++)
-    {
-        if (circles->array[i].removable)
-        {
-            // Remove this ball
-            for (size_t j = i; j < circles->used - 1; j++)
-            {
-                circles->array[j] = circles->array[j + 1];
-            }
-            circles->used--;
-            i--; // Check current index again
-        }
-    }
-
-    // If still over limit, remove oldest balls
-    while (circles->used > MAX_BALLS)
-    {
-        for (size_t i = 0; i < circles->used - 1; i++)
-        {
-            circles->array[i] = circles->array[i + 1];
-        }
-        circles->used--;
-    }
-}
-
 int main(void)
 {
     SDL_Init(SDL_INIT_VIDEO);
@@ -434,6 +400,9 @@ int main(void)
     const double spawn_interval = 0.06;
     SDL_Event e;
     Uint32 prev_ticks = SDL_GetTicks();
+    int auto_spawn_count = 200; // Numero di palline da spawnare
+    double auto_spawn_timer = 0.0;
+    const double auto_spawn_interval = 0.15;
 
     while (running)
     {
@@ -450,12 +419,28 @@ int main(void)
             else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT)
             {
                 mouseDown = 1;
-                Circle c = {e.button.x, e.button.y, RADIUS, 0.0, 0.0, 0, 0};
+                Circle c = {e.button.x, e.button.y, RADIUS, 0.0, 0.0, 0};
                 insertCircle(&circles, c);
             }
             else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT)
             {
                 mouseDown = 0;
+            }
+        }
+
+        if (auto_spawn_count > 0)
+        {
+            auto_spawn_timer += dt;
+            if (auto_spawn_timer >= auto_spawn_interval)
+            {
+                auto_spawn_timer = 0.0;
+
+                // Crea una pallina al centro in alto con piccola variazione casuale
+                double x = WIDTH / 2 + (rand() % 20 - 10); // -10 a +10 pixel
+                Circle c = {x, -30, RADIUS, 0.0, 0.0, 0};
+                insertCircle(&circles, c);
+
+                auto_spawn_count--;
             }
         }
 
@@ -467,7 +452,7 @@ int main(void)
                 spawn_ball_accum -= spawn_interval;
                 int mx, my;
                 SDL_GetMouseState(&mx, &my);
-                Circle c = {mx, my, RADIUS, 0.0, 0.0, 0, 0};
+                Circle c = {mx, my, RADIUS, 0.0, 0.0, 0};
                 insertCircle(&circles, c);
             }
         }
@@ -480,7 +465,7 @@ int main(void)
         SDL_FillRect(surface, NULL, COLOR_BLACK);
 
         // Collision resolution with multiple iterations
-        for (int iter = 0; iter < circles.used/2; iter++)
+        for (int iter = 0; iter < circles.used / 2; iter++)
         {
             resolve_walls_and_floor(&circles);
             check_obstacle_collisions(&circles, &obstacles);
@@ -496,13 +481,9 @@ int main(void)
             FillCircle(surface, circles.array[i], COLOR_WHITE);
         }
 
-        // Manage ball limit without removing visible balls
-        // manage_ball_limit(&circles);
-
         SDL_UpdateWindowSurface(window);
         SDL_Delay(10);
     }
-
     free(circles.array);
     free(obstacles.array);
     SDL_DestroyWindow(window);

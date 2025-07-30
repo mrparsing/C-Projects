@@ -63,6 +63,8 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[ASCII Rotating Cube](./project/terminal_cube/)** — Another 3D cube rotating but in the terminal.  
 - **[Two-Body Orbit Simulation](./project/orbiting_planets/)** — A program that simulates a two-body gravitational interaction. A small blue planet orbits a larger yellow body, with a trail showing its past positions.
 - **[Tiny Regex/Grep](./project/regex/)** — A super–small regular‑expression engine (supports `.` `*` `^` `$`) and a mini **grep** that scans stdin or files line‑by‑line.
+- **[Plinko](./project/plinko/)** — A program that simulates a Plinko board game using SDL2.
+
 ---
 
 ### ⭐⭐⭐⭐☆ (4 / 5)
