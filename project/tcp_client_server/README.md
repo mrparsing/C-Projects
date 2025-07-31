@@ -24,8 +24,8 @@ Great as a first contact with BSD sockets: `socket → bind → listen → accep
 ### Linux / macOS
 
 ```bash
-cc server.c -o server -Wall -Wextra -pedantic -std=c99
-cc client.c -o client -Wall -Wextra -pedantic -std=c99
+chmod +x build.sh
+./build.sh
 ```
 
 *(Use `gcc` or `clang`; the flags are optional but recommended.)*

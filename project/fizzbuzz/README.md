@@ -7,7 +7,8 @@ A program that prints numbers from **1 to *n***, replacing multiples of 3 with *
 ## 1. Build & Run
 
 ```bash
-cc fizzbuzz.c -o fizzbuzz
+chmod +x build.sh
+./build
 ./fizzbuzz 30
 ```
 

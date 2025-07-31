@@ -7,7 +7,8 @@ A compact C program that converts an integer in the range **0 – 9999** int
 ## 1. Build & Run
 
 ```bash
-cc number_names.c -o number_names
+chmod +x build.sh
+./build
 ./number_names 1987   # prints: "one thousand nine hundred eighty seven"
 ```
 

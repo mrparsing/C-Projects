@@ -8,27 +8,10 @@ Render the Mandelbrot set to an SDL window. The program computes the iteration c
 
 ## 1. Build Instructions
 
-### macOS (Homebrew SDL2 installed)
-
 ```bash
-clang mandelbrot.c -I"$(brew --prefix)/include" -L"$(brew --prefix)/lib" -lSDL2 -lm -o mandelbrot
+chmod +x build.sh
+./build
 ./mandelbrot
-```
-
-### Linux (Debian / Ubuntu)
-
-```bash
-sudo apt install libsdl2-dev build-essential
-gcc mandelbrot.c -lSDL2 -lm -O2 -o mandelbrot
-./mandelbrot
-```
-
-### Windows (MSYS2 MinGW64)
-
-```bash
-pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-SDL2
-gcc mandelbrot.c -lSDL2 -lm -O2 -o mandelbrot.exe
-./mandelbrot.exe
 ```
 
 ---

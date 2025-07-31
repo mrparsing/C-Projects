@@ -7,7 +7,8 @@ A tiny command‑line utility that determines whether a given integer is a **hap
 ## 1. Build & Run
 
 ```bash
-cc happy_numbers.c -o happy_numbers
+chmod +x build.sh
+./build
 ./happy_numbers 19   # prints that 19 is happy
 ./happy_numbers 20   # prints that 20 is not happy
 ```

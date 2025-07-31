@@ -13,7 +13,8 @@ A real‑time visualisation of the famous planar **figure‑8 three‑body orbit
 ### Build (Linux / macOS)
 
 ```bash
-cc 3_body.c -lm -lSDL2 -o 3_body
+chmod +x build.sh
+./build
 ```
 
 > Requires the SDL2 development package (`libsdl2-dev` on Debian/Ubuntu, `brew install sdl2` on macOS).

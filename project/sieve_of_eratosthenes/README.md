@@ -7,7 +7,8 @@ A simple Sieve of Eratosthenes.
 ## 1. Build & Run
 
 ```bash
-cc sieve_of_eratosthenes.c -o sieve_of_eratosthenes
+chmod +x build.sh
+./build.sh
 ./sieve_of_eratosthenes 50
 ```
 

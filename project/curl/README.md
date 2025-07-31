@@ -9,38 +9,10 @@ A minimal example program that performs an HTTP **GET** request using **libcurl*
 ### Linux / macOS (pkg-config available)
 
 ```bash
-gcc curl.c $(pkg-config --cflags --libs libcurl) -o curl
+chmod +x build.sh
+./build
 ./curl
 ```
-
-If you do **not** use `pkg-config`, specify includes / libs manually (paths differ per system):
-
-```bash
-gcc curl.c -I/usr/include -lcurl -o curl
-```
-
-On macOS with Homebrew:
-
-```bash
-brew install curl
-# If necessary add: -I"$(brew --prefix curl)/include" -L"$(brew --prefix curl)/lib"
-```
-
-### Windows (MSYS2 / MinGW)
-
-Install curl:
-
-```bash
-pacman -S mingw-w64-x86_64-curl
-```
-
-Compile:
-
-```bash
-x86_64-w64-mingw32-gcc curl.c -lcurl -o curl.exe
-```
-
-Run inside the same shell so runtime DLLs are found.
 
 ---
 

@@ -10,27 +10,10 @@ This program produces a **“flying through stars”** illusion: white squares s
 
 ## 1. Build & Run
 
-### macOS (Homebrew)
-
 ```bash
-clang starfield.c -I"$(brew --prefix)/include" -L"$(brew --prefix)/lib" -lSDL2 -o starfield
+chmod +x build.sh
+./build.sh
 ./starfield
-```
-
-### Debian / Ubuntu
-
-```bash
-sudo apt install libsdl2-dev
-cc starfield.c -lSDL2 -o starfield
-./starfield
-```
-
-### Windows (MSYS2 MinGW64)
-
-```bash
-pacman -S mingw-w64-x86_64-SDL2
-x86_64-w64-mingw32-gcc starfield.c -lSDL2 -o starfield.exe
-starfield.exe
 ```
 
 ---

@@ -15,29 +15,10 @@ A tiny command‑line program that loads a **WAV** file and plays it once using 
 
 ## 2. Build Instructions
 
-### macOS (Homebrew SDL2)
-
 ```bash
-clang audio.c -I"$(brew --prefix)/include" -L"$(brew --prefix)/lib" -lSDL2 -o sdlplay
+chmod +x build.sh
+./build
 ```
-
-### Linux (Debian/Ubuntu)
-
-```bash
-sudo apt install libsdl2-dev
-cc audio.c -lSDL2 -o sdlplay
-```
-
-### Windows (MSYS2 MinGW64)
-
-```bash
-pacman -S mingw-w64-x86_64-SDL2
-x86_64-w64-mingw32-gcc audio.c -lSDL2 -o audio.exe
-```
-
-Ensure the SDL2 *development* package is installed (headers + import libs) — not just runtime DLLs.
-
----
 
 ## 3. Usage
 

@@ -56,7 +56,8 @@ for (int i = 0; i < row; ++i) {
 ## 2. Build & Run
 
 ```bash
-cc pascal.c -o pascal
+chmod +x build.sh
+./build
 ./pascal
 Enter row: 8
 ```

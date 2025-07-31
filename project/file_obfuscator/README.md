@@ -19,19 +19,10 @@ A very small C utility that applies a **bitwise NOT** or a **byte-wise XOR** to 
 
 ## 2. Build
 
-### GCC / Clang
-
 ```bash
-gcc -O2 -Wall -Wextra -pedantic -o file_obfuscator file_obfuscator.c
+chmod +x build.sh
+./build
 ```
-
-### Example with warnings treated as errors
-
-```bash
-gcc -O2 -Wall -Wextra -Wconversion -Werror -o file_obfuscator file_obfuscator.c
-```
-
----
 
 ## 3. Usage
 

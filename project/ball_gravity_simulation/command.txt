@@ -1,1 +1,0 @@
-clang ball_gravity_simulation.c -I$(brew --prefix)/include -L$(brew --prefix)/lib -lSDL2 -o ball_gravity_simulation

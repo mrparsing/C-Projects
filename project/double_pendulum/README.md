@@ -98,9 +98,10 @@ Uint32 color_dynamic = SDL_MapRGB(surface->format, red, green, 255 - red);
 - C compiler (GCC recommended)
 - Math library (-lm)
 
-### Compilation (Linux)
+### Compilation
 ```bash
-gcc double_pendulum.c -o double_pendulum -lm $(sdl2-config --cflags --libs)
+chmod +x build.sh
+./build
 ```
 
 ### Execution

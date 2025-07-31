@@ -18,7 +18,8 @@ Features
 
 ## How to Compile
 ```bash
-gcc -lncurses -o shell shell.c
+chmod +x build.sh
+./build.sh
 ```
 Make sure ncurses is installed on your system (e.g., sudo apt install libncurses5-dev on Debian/Ubuntu).
 

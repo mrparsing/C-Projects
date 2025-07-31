@@ -18,7 +18,8 @@ A command-line tool written in C to convert numbers between Decimal, Binary, and
 You need a C compiler like **GCC**. Save the code as `converter.c` and run the following command in your terminal:
 
 ```bash
-gcc converter.c -o converter
+chmod +x build.sh
+./build
 ```
 
 ## How to Use

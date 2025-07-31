@@ -11,78 +11,12 @@ A simple two–player Pong clone in C using **SDL2** and **SDL\_ttf**, with a ba
 
 ---
 
-## 1. Requirements
-
-### macOS (Homebrew)
-
-Install / update Homebrew (if you do not already have it):
+## 1. Build (Compilation)
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+chmod +x build.sh
+./build
 ```
-
-Install libraries:
-
-```bash
-brew install sdl2 sdl2_ttf
-```
-
-### Linux (Debian / Ubuntu / Mint)
-
-```bash
-sudo apt update
-sudo apt install build-essential libsdl2-dev libsdl2-ttf-dev
-```
-
-### Linux (Fedora / RHEL / Alma / Rocky)
-
-```bash
-sudo dnf install @development-tools SDL2-devel SDL2_ttf-devel
-```
-
-### Windows (MSYS2)
-
-1. Install MSYS2: [https://www.msys2.org/](https://www.msys2.org/)
-2. Open **MSYS2 MINGW64** shell and run:
-
-```bash
-pacman -Syu            # update, restart shell if asked
-pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_ttf
-```
-
-You will compile inside that MINGW64 shell.
-
-> **Font file**: Place any `.ttf` or `.otf` you want (e.g. `FreeSansBold.otf` or `DejaVuSans-Bold.ttf`) in the same directory as the executable or use an absolute path.
-
----
-
-## 2. Build (Compilation)
-
-Put your source file (e.g. `pong.c`) in a folder, plus the font file.
-
-### macOS (clang + Homebrew paths)
-
-```bash
-clang pong.c -I"$(brew --prefix)/include" -L"$(brew --prefix)/lib" \
-  -lSDL2 -lSDL2_ttf -lm -o pong
-```
-
-### Linux (GCC)
-
-```bash
-gcc pong.c -lSDL2 -lSDL2_ttf -lm -o pong
-```
-
-(If the linker complains, add `-pthread`.)
-
-### Windows (MSYS2 / MINGW64)
-
-```bash
-gcc pong.c -lSDL2 -lSDL2_ttf -lm -o pong.exe
-```
-
-If headers / libs are not found, add `-I/mingw64/include -L/mingw64/lib`.
-
 Run:
 
 ```bash
@@ -93,9 +27,9 @@ Controls: Left player **W/S**, Right player **O/L**. After a win: **R** to resta
 
 ---
 
-## 3. Deep Dive Into the Code
+## 2. Deep Dive Into the Code
 
-### 3.1 Constants & Types
+### 2.1 Constants & Types
 
 ```c
 #define WIDTH 900
@@ -117,7 +51,7 @@ typedef enum { PLAYING, GAME_OVER } GameState;              // Simple state mach
 
 We store velocity components (`vx`, `vy`) instead of speed+angle so updates are simple.
 
-### 3.2 Drawing Helpers
+### 2.2 Drawing Helpers
 
 #### `FillQuad`
 
@@ -150,7 +84,7 @@ static void FillCircle(SDL_Surface *s, Circle c, Uint32 color) {
 
 A brute‑force pixel fill: loops over the square bounding the circle and tests the distance to center. For larger radii or many circles you’d optimize (e.g. midpoint circle algorithm), but for a single 10‑px ball this is fine.
 
-### 3.3 Paddle Movement
+### 2.3 Paddle Movement
 
 ```c
 static inline void moveDown(Wall *w, double dt) {
@@ -165,7 +99,7 @@ static inline void moveUp(Wall *w, double dt) {
 
 Uses frame‑independent motion (`dt` = seconds since last frame). Clamps inside window bounds.
 
-### 3.4 Ball Update & Wall Bounce
+### 2.4 Ball Update & Wall Bounce
 
 ```c
 static inline void updateBallPosition(Circle *c, double dt) {
@@ -185,7 +119,7 @@ static inline void updateBallPosition(Circle *c, double dt) {
 
 We update position first, then respond to boundary collisions by reflecting `vy` and clamping the position so the ball does not "sink" past the wall.
 
-### 3.5 Paddle Collision & Angle Calculation
+### 2.5 Paddle Collision & Angle Calculation
 
 ```c
 static void checkCollision(Circle *c, Wall *L, Wall *R) {
@@ -214,7 +148,7 @@ static void checkCollision(Circle *c, Wall *L, Wall *R) {
 
 **Key idea:** The vertical deflection is proportional to *where* the ball hits relative to the paddle’s center. Hit near the top → negative offset → negative angle (ball goes upward). Hit near center → `offset ≈ 0` → angle ≈ 0 (horizontal). By recomputing `(vx, vy)` from a fixed speed we keep gameplay consistent.
 
-### 3.6 Reset Logic
+### 2.6 Reset Logic
 
 ```c
 static void resetGame(Circle *c, Wall *L, Wall *R) {
@@ -226,7 +160,7 @@ static void resetGame(Circle *c, Wall *L, Wall *R) {
 
 Called when restarting after a win. It recenters ball & paddles and gives the ball an initial rightward velocity.
 
-### 3.7 Main Loop Structure
+### 2.7 Main Loop Structure
 
 Pseudo-outline of the core loop:
 
@@ -253,7 +187,7 @@ Notes:
 * Using the *state machine* avoids immediately exiting; instead we draw a victory screen.
 * We query continuous key state with `SDL_GetKeyboardState` rather than relying on discrete key events, ensuring smooth paddle motion.
 
-### 3.8 Victory Screen Rendering
+### 2.8 Victory Screen Rendering
 
 Excerpt inside the render section when `state == GAME_OVER`:
 
@@ -273,7 +207,7 @@ SDL_FreeSurface(hint);
 
 `TTF_RenderUTF8_Blended` creates a temporary surface containing the glyphs; we blit it, then free it immediately to avoid leaks.
 
-### 3.9 Timing (`dt`)
+### 2.9 Timing (`dt`)
 
 ```c
 Uint32 now = SDL_GetTicks();
@@ -285,7 +219,7 @@ Multiplying movement by `dt` makes gameplay independent of frame rate: if a fram
 
 ---
 
-## 4. Key Concepts Recap
+## 3. Key Concepts Recap
 
 | Concept                     | Why it Matters                                   | Where Implemented                       |
 | --------------------------- | ------------------------------------------------ | --------------------------------------- |

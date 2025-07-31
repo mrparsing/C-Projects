@@ -12,7 +12,8 @@ Given an integer **n**, this program repeatedly applies the Collatz rules.
 ## 1. Build & Run
 
 ```bash
-cc collatz_conjecture.c -o collatz_conjecture
+chmod +x build.sh
+./build
 ./collatz_conjecture 37
 ```
 

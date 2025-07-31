@@ -18,12 +18,10 @@ A program that renders a spinning 3‑D cube **inside your terminal** using ASCI
 ### Linux / macOS
 
 ```bash
-cc terminal_cube.c -lm -o terminal_cube
+chmod +x build.sh
+./build.sh
 ./terminal_cube
 ```
-
-* `-lm` links against the math library (`sin`, `cos`).
-* Make sure your terminal is at least **160×44** characters (or adjust `screenW`/`screenH`).
 
 ### Windows
 

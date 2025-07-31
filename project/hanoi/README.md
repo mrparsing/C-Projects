@@ -7,7 +7,8 @@ Classic recursive solution to the **Tower of Hanoi**. Disks are stored in three 
 ## 1. Build & Run
 
 ```bash
-cc hanoi.c -o hanoi
+chmod +x build.sh
+./build
 ./hanoi            # solves for n = 3 (default in code)
 ```
 

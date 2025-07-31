@@ -96,9 +96,10 @@ SDL_UpdateWindowSurface(window);          // Refresh display
 - SDL2 library
 - C compiler (GCC recommended)
 
-### Compilation (Linux)
+### Compilation
 ```bash
-gcc plinko.c -o plinko -lm $(sdl2-config --cflags --libs)
+chmod +x build.sh
+./build
 ```
 
 ### Execution

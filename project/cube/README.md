@@ -14,17 +14,9 @@ A program that renders a rotating 3‑D wireframe cube using **SDL2**. It demons
 
 ## 1. Build Quick‑start
 
-### macOS (Homebrew)
-
 ```bash
-clang cube.c -I"$(brew --prefix)"/include -L"$(brew --prefix)"/lib -lSDL2 -lm -o cube
-```
-
-### Linux (Debian/Ubuntu)
-
-```bash
-sudo apt install libsdl2-dev
-cc cube.c -lSDL2 -lm -o cube
+chmod +x build.sh
+./build
 ```
 
 Run:

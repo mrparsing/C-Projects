@@ -6,27 +6,10 @@ This program estimates **π** by randomly sampling points in a square and counti
 
 ## 1. Build & Run
 
-### macOS (Homebrew SDL2)
-
 ```bash
-clang pi_estimation.c -I"$(brew --prefix)/include" -L"$(brew --prefix)/lib" -lSDL2 -lm -o pi_estimation
+chmod +x build.sh
+./build
 ./pi_estimation
-```
-
-### Linux (Debian/Ubuntu)
-
-```bash
-sudo apt install libsdl2-dev
-cc pi_estimation.c -lSDL2 -lm -o pi_estimation
-./pipi_estimation_mc
-```
-
-### Windows (MSYS2 MinGW64)
-
-```bash
-pacman -S mingw-w64-x86_64-SDL2
-x86_64-w64-mingw32-gcc pi_estimation.c -lSDL2 -lm -o pi_estimation.exe
-pi_estimation.exe
 ```
 
 ---

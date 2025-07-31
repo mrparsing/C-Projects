@@ -157,7 +157,8 @@ Payload:    48 65 6c 6c 6f 21
 1. Save the code to a file (e.g., `icmp_demo.c`)
 2. Compile with:
    ```bash
-   gcc -o ping ping.c
+   chmod +x build.sh
+   ./build
    ```
 3. Execute:
    ```bash

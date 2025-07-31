@@ -20,18 +20,10 @@ Generates a **fully‑valid Sudoku**, removes cells according to chosen difficul
 
 ## 2. Build & Run
 
-### Linux / macOS
-
 ```bash
-cc sudoku.c -o sudoku
+chmod +x build.sh
+./build.sh
 ./sudoku 2   # 1=e, 2=m, 3=h
-```
-
-### Windows (MSYS2)
-
-```bash
-mingw32-make sudoku.exe   # or gcc sudoku.c -o sudoku.exe
-sudoku.exe 3
 ```
 
 If you omit the argument or supply an invalid difficulty, usage help is printed:

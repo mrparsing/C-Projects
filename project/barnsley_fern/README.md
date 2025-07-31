@@ -17,27 +17,9 @@ A program that renders the classic **Barnsley Fern fractal** using SDL2. It appl
 
 ## 2. Build & Run
 
-### macOS (Homebrew SDL2)
-
 ```bash
-clang barnsley_fern.c -I"$(brew --prefix)/include" -L"$(brew --prefix)/lib" -lSDL2 -o barnsley_fern
-./barnsley_fern
-```
-
-### Linux (Debian/Ubuntu)
-
-```bash
-sudo apt install libsdl2-dev
-cc barnsley_fern.c -lSDL2 -o barnsley_fern
-./barnsley_fern
-```
-
-### Windows (MSYS2 MinGW64)
-
-```bash
-pacman -S mingw-w64-x86_64-SDL2
-x86_64-w64-mingw32-gcc barnsley_fern.c -lSDL2 -o barnsley_fern.exe
-barnsley_fern.exe
+chmod +x build.sh
+./build
 ```
 
 If SDL can’t be found, ensure you installed the **development** package (headers + libs), not just the runtime DLL.

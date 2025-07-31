@@ -13,8 +13,8 @@ Default board size is 8 (via `#define N 8`).
 ## 1. Build & Run
 
 ```bash
-cc 8_queens.c -o 8_queens
-./8_queens
+chmod +x build.sh
+./build
 ```
 
 Expect a lot of output (92 solutions for N=8). Pipe to less if needed:

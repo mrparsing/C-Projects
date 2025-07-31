@@ -7,7 +7,8 @@ A tiny command‑line utility that checks whether a numeric string passes the **
 ## 1. Build & Run
 
 ```bash
-cc validator.c -o validator
+chmod +x build.sh
+./build
 ./validator 4532015112830366   # Visa test number → VALID
 ./validator 1234567812345670   # → NOT VALID
 ```

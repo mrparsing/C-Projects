@@ -15,21 +15,9 @@ Any C toolchain (GCC / Clang / MSVC / TinyCC). No external libraries required.
 **Linux / macOS:**
 
 ```bash
-gcc md5.c -O2 -Wall -Wextra -o md5
+chmod +x build.sh
+./build
 ./md5
-```
-
-**Clang:**
-
-```bash
-clang md5.c -O2 -Weverything -Wno-poison-system-directories -o md5
-```
-
-**Windows (MSYS2 / MinGW):**
-
-```bash
-gcc md5.c -O2 -Wall -Wextra -o md5.exe
-md5.exe
 ```
 
 ---

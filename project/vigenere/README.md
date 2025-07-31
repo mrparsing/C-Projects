@@ -12,7 +12,8 @@ A straightforward command‑line tool that encrypts a message with a **Vigenère
 ## 1. Build & Run
 
 ```bash
-cc vigenere.c -o vigenere
+chmod +x build.sh
+./build.sh
 ./vigenere
 Enter the message: Attack at dawn!
 Enter the key:  LEMON

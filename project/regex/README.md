@@ -24,7 +24,8 @@ A super–small regular‑expression engine (supports `.` `*` `^` `$`) and a min
 ### Compile
 
 ```bash
-cc regex.c -o regex -std=c99 -Wall -Wextra -pedantic
+chmod +x build.sh
+./build.sh
 ```
 
 ### Run on stdin

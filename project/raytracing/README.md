@@ -274,8 +274,6 @@ int main() {
 ## 9. Final Compilation
 
 ```bash
-gcc main.c $(sdl2-config --cflags --libs) -lm -o raytracer
+chmod +x build.sh
+./build.sh
 ```
-
-* `-lm` links the math library (cos, sin, sqrt).
-* On Windows: add `-mwindows -lmingw32 -lSDL2main`.

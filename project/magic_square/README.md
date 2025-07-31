@@ -9,7 +9,8 @@ This program builds a **magic square of size N×N (odd N only)** using the class
 ## 1. Build & Run
 
 ```bash
-cc magic_square.c -o magic_square
+chmod +x build.sh
+./build
 ./magic_square
 ```
 

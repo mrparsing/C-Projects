@@ -68,7 +68,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 
 ### ⭐⭐⭐⭐☆ (4 / 5)
 
-- **[Neural Network from scratch](./project/neural_network/)** — A minimal multi-layer perceptron that learns the XOR function using **stochastic gradient descent**, **binary cross-entropy**, and **sigmoid activations**.  
+- **[Neural Network from scratch](./project/neural_network/)** — A minimal multi-layer perceptron that learns the XOR function using **stochastic gradient descent**, **binary cross-entropy**, and **sigmoid activations**.
 - **[Double Pendulum](./project/double_pendulum/)** — A program that simulates a double pendulum.
 - **[Three-Body Problem](./project/3_body_problem/)** — A leap-frog integrator simulating the famous three-body figure-8 orbit and drawing trails.
 - **[A* visualization](./project/a_star_visualization/)** — A program to visualize the A* pathfinding algorithm.
