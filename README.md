@@ -49,13 +49,13 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Magic Square](./project/magic_square/)** — This program builds a **magic square of size N×N** using the classic *Siamese method*.
 - **[Monte Carlo π Estimator](./project/pi_estimation/)** — This program estimates **π** by randomly sampling points in a square and counting how many fall inside an inscribed circle.
 - **[Barnsley Fern](./project/barnsley_fern/)** — A program that renders the classic **Barnsley Fern fractal**.
+- **[Game of life](./project/game_of_life/)** — Implementation of **Conway’s Game of Life**.  
 
 ---
 
 ### ⭐⭐⭐☆☆ (3 / 5)
 
 - **[Ball gravity simulation](./project/ball_gravity_simulation/)** — An **interactive particle sandbox**: balls fall, collide with each other (elastic-ish with restitution), bounce on walls/floor, and resolve penetration against obstacles.  
-- **[Game of life](./project/game_of_life/)** — Implementation of **Conway’s Game of Life**.  
 - **[Linux Keylogger](./project/linux_keylogger/)** — A minimal C program that reads **raw key-press events** from the Linux *evdev* interface.  
 - **[Neural Network from scratch](./project/neural_network/)** — A minimal multi-layer perceptron that learns the XOR function using **stochastic gradient descent**, **binary cross-entropy**, and **sigmoid activations**.  
 - **[Raytracer 2D (SDL2)](./project/raytracing/)** — A simple 2D raytracer that visualizes light interacting with a circle.  
