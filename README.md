@@ -57,7 +57,6 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 
 - **[Ball gravity simulation](./project/ball_gravity_simulation/)** — An **interactive particle sandbox**: balls fall, collide with each other (elastic-ish with restitution), bounce on walls/floor, and resolve penetration against obstacles.  
 - **[Linux Keylogger](./project/linux_keylogger/)** — A minimal C program that reads **raw key-press events** from the Linux *evdev* interface.  
-- **[Neural Network from scratch](./project/neural_network/)** — A minimal multi-layer perceptron that learns the XOR function using **stochastic gradient descent**, **binary cross-entropy**, and **sigmoid activations**.  
 - **[Raytracer 2D (SDL2)](./project/raytracing/)** — A simple 2D raytracer that visualizes light interacting with a circle.  
 - **[Rotating Cube](./project/cube/)** — A program that renders a rotating 3-D wireframe cube using **SDL2**.  
 - **[ASCII Rotating Cube](./project/terminal_cube/)** — Another 3D cube rotating but in the terminal.  
@@ -69,6 +68,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 
 ### ⭐⭐⭐⭐☆ (4 / 5)
 
+- **[Neural Network from scratch](./project/neural_network/)** — A minimal multi-layer perceptron that learns the XOR function using **stochastic gradient descent**, **binary cross-entropy**, and **sigmoid activations**.  
 - **[Double Pendulum](./project/double_pendulum/)** — A program that simulates a double pendulum.
 - **[Three-Body Problem](./project/3_body_problem/)** — A leap-frog integrator simulating the famous three-body figure-8 orbit and drawing trails.
 - **[A* visualization](./project/a_star_visualization/)** — A program to visualize the A* pathfinding algorithm.
