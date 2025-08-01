@@ -42,6 +42,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Pong game](./project/pong_game/)** — A simple two-player Pong clone in C using **SDL2** and **SDL\_ttf**, with a basic victory screen.  
 - **[N-Queens Solver](./project/8_queens/)** — Place **N queens** on an N×N chessboard so none attack each other (no same row, column, or diagonal).
 - **[Tower of Hanoi](./project/hanoi/)** — Classic recursive solution to the **Tower of Hanoi**.
+- **[Tic Tac Toe](./project/tictactoe/)** — A classic Tic Tac Toe game where you play against an AI opponent that uses the minimax algorithm.
 - **[Magic Square](./project/magic_square/)** — This program builds a **magic square of size N×N** using the classic *Siamese method*.
 - **[Monte Carlo π Estimator](./project/pi_estimation/)** — This program estimates **π** by randomly sampling points in a square and counting how many fall inside an inscribed circle.
 - **[Barnsley Fern](./project/barnsley_fern/)** — A program that renders the classic **Barnsley Fern fractal**.
