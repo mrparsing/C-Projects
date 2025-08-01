@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <limits.h>
 
 void print(char grid[3][3])
 {
@@ -39,11 +40,8 @@ int check_diagonal(char grid[3][3], char player)
 {
     for (int i = 0; i < 3; i++)
     {
-        for (int j = 0; j < 3; j++)
-        {
-            if (i == j && grid[i][j] != player)
-                return 0;
-        }
+        if (grid[i][i] != player)
+            return 0;
     }
     return 1;
 }
@@ -52,11 +50,8 @@ int check_anti_diagonal(char grid[3][3], char player)
 {
     for (int i = 0; i < 3; i++)
     {
-        for (int j = 0; j < 3; j++)
-        {
-            if ((2 - i) == j && grid[i][j] != player)
-                return 0;
-        }
+        if (grid[i][2 - i] != player)
+            return 0;
     }
     return 1;
 }
@@ -93,6 +88,66 @@ int full_grid(char grid[3][3])
         }
     }
     return 1;
+}
+
+int minimax(char grid[3][3], char player)
+{
+    if (check_win(grid, 'X'))
+        return -10;
+    if (check_win(grid, 'O'))
+        return 10;
+    if (full_grid(grid))
+        return 0;
+
+    if (player == 'O') {
+        int best_val = -INT_MAX;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (grid[i][j] == ' ') {
+                    grid[i][j] = 'O';
+                    int val = minimax(grid, 'X');
+                    grid[i][j] = ' ';
+                    if (val > best_val) 
+                        best_val = val;
+                }
+            }
+        }
+        return best_val;
+    } else {
+        int best_val = INT_MAX;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (grid[i][j] == ' ') {
+                    grid[i][j] = 'X';
+                    int val = minimax(grid, 'O');
+                    grid[i][j] = ' ';
+                    if (val < best_val) 
+                        best_val = val;
+                }
+            }
+        }
+        return best_val;
+    }
+}
+
+int findBestMove(char grid[3][3]) {
+    int best_val = -INT_MAX;
+    int best_move = -1;
+
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (grid[i][j] == ' ') {
+                grid[i][j] = 'O';
+                int move_val = minimax(grid, 'X');
+                grid[i][j] = ' ';
+                if (move_val > best_val) {
+                    best_val = move_val;
+                    best_move = i * 3 + j;
+                }
+            }
+        }
+    }
+    return best_move;
 }
 
 int main()
@@ -141,16 +196,12 @@ int main()
             break;
         }
 
-        int pc_move = minmax(grid);
-        if (pc_move == -1)
-        {
-            printf("Draw!\n");
-            break;
-        }
+        int pc_move = findBestMove(grid);
+        row = pc_move / 3;
+        col = pc_move % 3;
+        grid[row][col] = 'O';
 
-        // PC MOVE: TO APPLY
-
-        // PRINT GRID
+        print(grid);
 
         if (check_win(grid, 'O'))
         {
@@ -159,7 +210,7 @@ int main()
         }
         if (full_grid(grid))
         {
-            printf("Draw!");
+            printf("Draw!1n");
             break;
         }
     }

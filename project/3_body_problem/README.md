@@ -10,7 +10,7 @@ A real‑time visualisation of the famous planar **figure‑8 three‑body orbit
 
 ## 1. Quick Start
 
-### Build (Linux / macOS)
+### Build
 
 ```bash
 chmod +x build.sh
