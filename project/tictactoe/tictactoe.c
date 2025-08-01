@@ -80,6 +80,21 @@ int check_win(char grid[3][3], char player)
     return 0;
 }
 
+int full_grid(char grid[3][3])
+{
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            if (grid[i][j] == ' ')
+            {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
 int main()
 {
     char grid[3][3] = {
@@ -89,5 +104,63 @@ int main()
     printf("Welcome to tictactoe game!\nYou are X, computer is O\n");
     printf("Choose a position from 1 to 9\n");
     print(grid);
-    printf("%d\n", check_win(grid, 'X'));
+
+    while (1)
+    {
+        int pos = -1;
+        printf("Enter a position: ");
+        scanf("%d", &pos);
+
+        if (pos < 1 || pos > 9)
+        {
+            printf("Position not valid, try again :(\n");
+            continue;
+        }
+
+        int row = (pos - 1) / 3;
+        int col = (pos - 1) % 3;
+
+        if (grid[row][col] != ' ')
+        {
+            printf("Position already occupied, try again :(\n");
+            continue;
+        }
+
+        grid[row][col] = 'X';
+
+        print(grid);
+
+        if (check_win(grid, 'X'))
+        {
+            printf("Congratulation! You won!!\n");
+            break;
+        }
+        if (full_grid(grid))
+        {
+            printf("Draw!");
+            break;
+        }
+
+        int pc_move = minmax(grid);
+        if (pc_move == -1)
+        {
+            printf("Draw!\n");
+            break;
+        }
+
+        // PC MOVE: TO APPLY
+
+        // PRINT GRID
+
+        if (check_win(grid, 'O'))
+        {
+            printf("PC won! Try again\n");
+            break;
+        }
+        if (full_grid(grid))
+        {
+            printf("Draw!");
+            break;
+        }
+    }
 }
