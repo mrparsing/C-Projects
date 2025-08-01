@@ -15,11 +15,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 
 ---
 
-## 🔗 Projects
-
-> ⭐☆☆☆☆ = 1  ⭐⭐☆☆☆ = 2  ⭐⭐⭐☆☆ = 3  ⭐⭐⭐⭐☆ = 4  ⭐⭐⭐⭐⭐ = 5  
-
----
+## Projects
 
 ### ⭐☆☆☆☆ (1 / 5)
 
