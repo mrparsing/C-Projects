@@ -7,40 +7,51 @@
 #define MAX_NODES 100
 #define MAX_EDGES 200
 
-typedef struct {
+typedef struct
+{
     int x, y;
     int id;
 } Node;
 
-typedef struct {
+typedef struct
+{
     int from;
     int to;
 } Edge;
 
-void draw_circle(SDL_Renderer *renderer, int x, int y, int radius) {
-    for (int w = 0; w < radius * 2; w++) {
-        for (int h = 0; h < radius * 2; h++) {
+void draw_circle(SDL_Renderer *renderer, int x, int y, int radius)
+{
+    for (int w = 0; w < radius * 2; w++)
+    {
+        for (int h = 0; h < radius * 2; h++)
+        {
             int dx = radius - w;
             int dy = radius - h;
-            if (dx * dx + dy * dy <= radius * radius) {
+            if (dx * dx + dy * dy <= radius * radius)
+            {
                 SDL_RenderDrawPoint(renderer, x + dx, y + dy);
             }
         }
     }
 }
 
-void draw_line(SDL_Renderer *renderer, int x1, int y1, int x2, int y2) {
+void draw_line(SDL_Renderer *renderer, int x1, int y1, int x2, int y2)
+{
     SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
 }
 
-int is_point_in_node(int mx, int my, Node *node) {
+// Checks if the mouse click at mx, my is inside the node circle
+int is_point_in_node(int mx, int my, Node *node)
+{
     int dx = mx - node->x;
     int dy = my - node->y;
     return (dx * dx + dy * dy) <= NODE_RADIUS * NODE_RADIUS;
 }
 
-int main() {
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+int main()
+{
+    if (SDL_Init(SDL_INIT_VIDEO) != 0)
+    {
         printf("SDL_Init Error: %s\n", SDL_GetError());
         return 1;
     }
@@ -48,14 +59,16 @@ int main() {
     SDL_Window *window = SDL_CreateWindow("Graph Visualizer",
                                           SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                           WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
-    if (!window) {
+    if (!window)
+    {
         printf("SDL_CreateWindow Error: %s\n", SDL_GetError());
         SDL_Quit();
         return 1;
     }
 
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (!renderer) {
+    if (!renderer)
+    {
         printf("SDL_CreateRenderer Error: %s\n", SDL_GetError());
         SDL_DestroyWindow(window);
         SDL_Quit();
@@ -71,58 +84,118 @@ int main() {
     int running = 1;
     SDL_Event event;
 
-    int dragging_node = -1;
-    int offset_x = 0, offset_y = 0;
+    int shift_pressed = 0;    // tracks if Shift key is pressed
+    int selected_node = -1;   // node selected for edge creation
+    int dragging_node = -1;   // node currently being dragged
+    int offset_x = 0, offset_y = 0; // mouse offset during dragging
 
-    while (running) {
-        while (SDL_PollEvent(&event)) {
-            switch (event.type) {
-                case SDL_QUIT:
-                    running = 0;
-                    break;
+    while (running)
+    {
+        while (SDL_PollEvent(&event))
+        {
+            switch (event.type)
+            {
+            case SDL_QUIT:
+                running = 0;
+                break;
 
-                case SDL_MOUSEBUTTONDOWN:
-                    if (event.button.button == SDL_BUTTON_LEFT) {
-                        int mx = event.button.x;
-                        int my = event.button.y;
-                        for (int i = 0; i < nodes_count; i++) {
-                            if (is_point_in_node(mx, my, &nodes[i])) {
+            case SDL_KEYDOWN:
+                // check if either Shift key is pressed
+                if (event.key.keysym.sym == SDLK_LSHIFT || event.key.keysym.sym == SDLK_RSHIFT)
+                    shift_pressed = 1;
+                break;
+
+            case SDL_KEYUP:
+                if (event.key.keysym.sym == SDLK_LSHIFT || event.key.keysym.sym == SDLK_RSHIFT)
+                {
+                    shift_pressed = 0;
+                    selected_node = -1;
+                }
+                break;
+
+            case SDL_MOUSEBUTTONDOWN:
+                if (event.button.button == SDL_BUTTON_LEFT)
+                {
+                    int mx = event.button.x;
+                    int my = event.button.y;
+
+                    if (shift_pressed)
+                    {
+                        // when Shift is pressed, clicking on nodes will select/connect nodes with edges
+                        for (int i = 0; i < nodes_count; i++)
+                        {
+                            if (is_point_in_node(mx, my, &nodes[i]))
+                            {
+                                if (selected_node == -1)
+                                {
+                                    selected_node = i; // select first node
+                                }
+                                else if (selected_node != i)
+                                {
+                                    // connect previously selected node to this node with an edge
+                                    if (edges_count < MAX_EDGES)
+                                    {
+                                        edges[edges_count].from = selected_node;
+                                        edges[edges_count].to = i;
+                                        edges_count++;
+                                    }
+                                    selected_node = -1;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // if Shift is not pressed, check if user clicks a node to start dragging it
+                        for (int i = 0; i < nodes_count; i++)
+                        {
+                            if (is_point_in_node(mx, my, &nodes[i]))
+                            {
                                 dragging_node = i;
                                 offset_x = nodes[i].x - mx;
                                 offset_y = nodes[i].y - my;
                                 break;
                             }
                         }
-                    } else if (event.button.button == SDL_BUTTON_RIGHT) {
-                        if (nodes_count < MAX_NODES) {
-                            nodes[nodes_count].x = event.button.x;
-                            nodes[nodes_count].y = event.button.y;
-                            nodes[nodes_count].id = nodes_count;
-                            nodes_count++;
-                            printf("Nodo aggiunto in (%d,%d), id=%d\n", event.button.x, event.button.y, nodes_count-1);
-                        }
                     }
-                    break;
-
-                case SDL_MOUSEBUTTONUP:
-                    if (event.button.button == SDL_BUTTON_LEFT) {
-                        dragging_node = -1;
+                }
+                else if (event.button.button == SDL_BUTTON_RIGHT)
+                {
+                    // right-click adds a new node at mouse position if limit not reached
+                    if (nodes_count < MAX_NODES)
+                    {
+                        nodes[nodes_count].x = event.button.x;
+                        nodes[nodes_count].y = event.button.y;
+                        nodes[nodes_count].id = nodes_count;
+                        nodes_count++;
                     }
-                    break;
+                }
+                break;
 
-                case SDL_MOUSEMOTION:
-                    if (dragging_node != -1) {
-                        int mx = event.motion.x;
-                        int my = event.motion.y;
-                        nodes[dragging_node].x = mx + offset_x;
-                        nodes[dragging_node].y = my + offset_y;
+            case SDL_MOUSEBUTTONUP:
+                if (event.button.button == SDL_BUTTON_LEFT)
+                    dragging_node = -1;
+                break;
 
-                        if (nodes[dragging_node].x < NODE_RADIUS) nodes[dragging_node].x = NODE_RADIUS;
-                        if (nodes[dragging_node].y < NODE_RADIUS) nodes[dragging_node].y = NODE_RADIUS;
-                        if (nodes[dragging_node].x > WINDOW_WIDTH - NODE_RADIUS) nodes[dragging_node].x = WINDOW_WIDTH - NODE_RADIUS;
-                        if (nodes[dragging_node].y > WINDOW_HEIGHT - NODE_RADIUS) nodes[dragging_node].y = WINDOW_HEIGHT - NODE_RADIUS;
-                    }
-                    break;
+            case SDL_MOUSEMOTION:
+                if (dragging_node != -1)
+                {
+                    int mx = event.motion.x;
+                    int my = event.motion.y;
+                    nodes[dragging_node].x = mx + offset_x;
+                    nodes[dragging_node].y = my + offset_y;
+
+                    if (nodes[dragging_node].x < NODE_RADIUS)
+                        nodes[dragging_node].x = NODE_RADIUS;
+                    if (nodes[dragging_node].y < NODE_RADIUS)
+                        nodes[dragging_node].y = NODE_RADIUS;
+                    if (nodes[dragging_node].x > WINDOW_WIDTH - NODE_RADIUS)
+                        nodes[dragging_node].x = WINDOW_WIDTH - NODE_RADIUS;
+                    if (nodes[dragging_node].y > WINDOW_HEIGHT - NODE_RADIUS)
+                        nodes[dragging_node].y = WINDOW_HEIGHT - NODE_RADIUS;
+                }
+                break;
             }
         }
 
@@ -130,18 +203,21 @@ int main() {
         SDL_RenderClear(renderer);
 
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        for (int i = 0; i < edges_count; i++) {
+        for (int i = 0; i < edges_count; i++)
+        {
             int f = edges[i].from;
             int t = edges[i].to;
             draw_line(renderer, nodes[f].x, nodes[f].y, nodes[t].x, nodes[t].y);
         }
 
-        for (int i = 0; i < nodes_count; i++) {
+        for (int i = 0; i < nodes_count; i++)
+        {
             SDL_SetRenderDrawColor(renderer, 0, 150, 255, 255);
             draw_circle(renderer, nodes[i].x, nodes[i].y, NODE_RADIUS);
 
             SDL_SetRenderDrawColor(renderer, 0, 100, 180, 255);
-            for (int r = NODE_RADIUS - 3; r <= NODE_RADIUS; r++) {
+            for (int r = NODE_RADIUS - 3; r <= NODE_RADIUS; r++)
+            {
                 draw_circle(renderer, nodes[i].x, nodes[i].y, r);
             }
         }
