@@ -69,6 +69,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Double Pendulum](./project/double_pendulum/)** — A program that simulates a double pendulum.
 - **[Three-Body Problem](./project/3_body_problem/)** — A leap-frog integrator simulating the famous three-body figure-8 orbit and drawing trails.
 - **[A* visualization](./project/a_star_visualization/)** — A program to visualize the A* pathfinding algorithm.
+- **[Graph Visualizer with Bellman-Ford Algorithm](./project/graph_visualizer/)** — An interactive graph visualizer that implements the Bellman-Ford algorithm to find the shortest path between nodes.
 - **[MD5 Implementation](./project/md5/)** — Implementation of the MD5 algorithm.  
 - **[RSA Encryption and Decryption with GMP](./project/rsa/)** — RSA implementation using C and the GMP library for handling big numbers.  
 - **[Sudoku Generator & Solver](./project/sudoku/)** — Generates a **fully‑valid Sudoku** and solves it with backtracking.
