@@ -2,6 +2,10 @@
 
 This program is an interactive graph visualizer that implements the Bellman-Ford algorithm to find the shortest path between nodes. It uses SDL2 for graphics and SDL_ttf for text rendering.
 
+# Demo
+
+![Demo](../assets/bellman-ford.gif)
+
 ---
 
 # Key Features
