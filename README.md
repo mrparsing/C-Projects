@@ -38,6 +38,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 
 ### ⭐⭐☆☆☆ (2 / 5)
 
+- **[Stack and Queue](./project/queue_stack/)** — Implementations of the data structures **stack** and **queue**.
 - **[Number‑to‑Words Converter](./project/number_names/)** — A program that converts an integer in the range **0 – 9999** into its English words representation.
 - **[libcurl GET Client](./project/curl/)** — A minimal example program that performs an HTTP **GET** request using **libcurl**.  
 - **[Mandelbrot Set](./project/mandelbrot_set/)** — Render the Mandelbrot set to an SDL window.  

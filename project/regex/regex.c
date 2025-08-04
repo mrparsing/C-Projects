@@ -16,7 +16,7 @@ int match(char *regexp, char *text) {
         return matchhere(regexp + 1, text);  // anchored at beginning
     do {
         if (matchhere(regexp, text))
-            return 1;  // match found
+            return 1;
     } while (*text++ != '\0');
     return 0;
 }
@@ -24,20 +24,20 @@ int match(char *regexp, char *text) {
 // === Match from here (core of the engine) ===
 int matchhere(char *regexp, char *text) {
     if (regexp[0] == '\0')
-        return 1;  // end of regex, success
+        return 1;
     if (regexp[1] == '*')
         return matchstar(regexp[0], regexp + 2, text);  // handle x*
     if (regexp[0] == '$' && regexp[1] == '\0')
-        return *text == '\0';  // end of line anchor
+        return *text == '\0';
     if (*text != '\0' && (regexp[0] == '.' || regexp[0] == *text))
         return matchhere(regexp + 1, text + 1);  // match one char
-    return 0;  // no match
+    return 0;
 }
 
 // === Handle c* (zero or more of char c) ===
 int matchstar(int c, char *regexp, char *text) {
     char *t;
-    // Consume as many c as possible (greedy)
+    // consume as many c as possible (greedy)
     for (t = text; *t != '\0' && (*t == c || c == '.'); t++);
     // Try matching regex from the end of that run, backtracking
     do {
@@ -58,14 +58,12 @@ int main(int argc, char *argv[]) {
     char *regex = argv[1];
 
     if (argc == 2) {
-        // Read from stdin if no files are provided
         while (fgets(line, MAX_LINE, stdin)) {
-            line[strcspn(line, "\n")] = '\0';  // remove trailing newline
+            line[strcspn(line, "\n")] = '\0';
             if (match(regex, line))
-                puts(line);  // print matching line
+                puts(line);
         }
     } else {
-        // Read from files
         for (int i = 2; i < argc; i++) {
             FILE *f = fopen(argv[i], "r");
             if (!f) {
@@ -74,7 +72,7 @@ int main(int argc, char *argv[]) {
             }
 
             while (fgets(line, MAX_LINE, f)) {
-                line[strcspn(line, "\n")] = '\0';  // remove trailing newline
+                line[strcspn(line, "\n")] = '\0'; 
                 if (match(regex, line))
                     puts(line);
             }
