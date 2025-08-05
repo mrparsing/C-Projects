@@ -49,16 +49,17 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Magic Square](./project/magic_square/)** — This program builds a **magic square of size N×N** using the classic *Siamese method*.
 - **[Monte Carlo π Estimator](./project/pi_estimation/)** — This program estimates **π** by randomly sampling points in a square and counting how many fall inside an inscribed circle.
 - **[Barnsley Fern](./project/barnsley_fern/)** — A program that renders the classic **Barnsley Fern fractal**.
-- **[Game of life](./project/game_of_life/)** — Implementation of **Conway’s Game of Life**.  
+- **[Game of life](./project/game_of_life/)** — Implementation of **Conway’s Game of Life**.
+- **[Flappy Bird](./project/flappy_bird/)** — A remake of the iconic Flappy Bird game built with SDL2.
 
 ---
 
 ### ⭐⭐⭐☆☆ (3 / 5)
 
-- **[Ball gravity simulation](./project/ball_gravity_simulation/)** — An **interactive particle sandbox**: balls fall, collide with each other (elastic-ish with restitution), bounce on walls/floor, and resolve penetration against obstacles.  
-- **[Linux Keylogger](./project/linux_keylogger/)** — A minimal C program that reads **raw key-press events** from the Linux *evdev* interface.  
-- **[Raytracer 2D (SDL2)](./project/raytracing/)** — A simple 2D raytracer that visualizes light interacting with a circle.  
-- **[Rotating Cube](./project/cube/)** — A program that renders a rotating 3-D wireframe cube using **SDL2**.  
+- **[Ball gravity simulation](./project/ball_gravity_simulation/)** — An **interactive particle sandbox**: balls fall, collide with each other (elastic-ish with restitution), bounce on walls/floor, and resolve penetration against obstacles.
+- **[Linux Keylogger](./project/linux_keylogger/)** — A minimal C program that reads **raw key-press events** from the Linux *evdev* interface.
+- **[Raytracer 2D (SDL2)](./project/raytracing/)** — A simple 2D raytracer that visualizes light interacting with a circle.
+- **[Rotating Cube](./project/cube/)** — A program that renders a rotating 3-D wireframe cube using **SDL2**.
 - **[ASCII Rotating Cube](./project/terminal_cube/)** — Another 3D cube rotating but in the terminal.  
 - **[Two-Body Orbit Simulation](./project/orbiting_planets/)** — A program that simulates a two-body gravitational interaction. A small blue planet orbits a larger yellow body, with a trail showing its past positions.
 - **[Tiny Regex/Grep](./project/regex/)** — A super–small regular‑expression engine (supports `.` `*` `^` `$`) and a mini **grep** that scans stdin or files line‑by‑line.
