@@ -344,7 +344,7 @@ int main()
                 playing = 0;
                 game_over = 1;
             }
-        }
+        } 
         render_text(renderer, font, game_over);
         SDL_RenderPresent(renderer);
         SDL_Delay(16);
