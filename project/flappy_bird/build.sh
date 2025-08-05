@@ -8,7 +8,7 @@ INCLUDE=$(brew --prefix)/include
 LIB=$(brew --prefix)/lib
 
 # Compilation flags
-FLAGS="-I$INCLUDE -L$LIB -lSDL2 -lSDL2_ttf"
+FLAGS="-I$INCLUDE -L$LIB -lSDL2 -lSDL2_ttf -lSDL2_image"
 
 # Build
 clang flappy_bird.c $FLAGS -o flappy_bird

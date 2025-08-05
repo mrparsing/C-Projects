@@ -3,6 +3,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
 
 #define WIDTH 600
 #define HEIGHT 600
@@ -15,7 +16,7 @@ typedef struct
 {
     double x;
     double gap_y;
-    double gap_height;
+    double gap_height; // empty space
     double width;
 } Column;
 
@@ -32,6 +33,7 @@ int RandRange(int Min, int Max)
     return (int)(((double)(diff + 1) / RAND_MAX) * rand() + Min);
 }
 
+/* Find the rightmost pipe */
 int find_rightmost_x(Column columns[NUM_COLUMNS])
 {
     int max_x = 0;
@@ -43,26 +45,32 @@ int find_rightmost_x(Column columns[NUM_COLUMNS])
     return max_x;
 }
 
-void generate_gap_column(SDL_Renderer *renderer, Column columns[NUM_COLUMNS])
+void render_columns(SDL_Renderer *renderer, SDL_Texture *pipe_texture, Column columns[NUM_COLUMNS])
 {
-    SDL_SetRenderDrawColor(renderer, 22, 204, 1, 0); // green
-
     for (int i = 0; i < NUM_COLUMNS; i++)
     {
-        SDL_Rect top = {
-            .x = columns[i].x,
-            .y = 0,
-            .w = columns[i].width,
-            .h = columns[i].gap_y};
+        int top_height = (int)columns[i].gap_y;
+        int bottom_height = (int)(HEIGHT - (columns[i].gap_y + columns[i].gap_height));
 
-        SDL_Rect bottom = {
-            .x = columns[i].x,
-            .y = columns[i].gap_y + columns[i].gap_height,
-            .w = columns[i].width,
-            .h = HEIGHT - (columns[i].gap_y + columns[i].gap_height)};
+        if (top_height > 0)
+        {
+            SDL_Rect top = {
+                .x = (int)columns[i].x,
+                .y = 0,
+                .w = (int)columns[i].width,
+                .h = top_height};
+            SDL_RenderCopyEx(renderer, pipe_texture, NULL, &top, 0, NULL, SDL_FLIP_VERTICAL);
+        }
 
-        SDL_RenderFillRect(renderer, &top);
-        SDL_RenderFillRect(renderer, &bottom);
+        if (bottom_height > 0)
+        {
+            SDL_Rect bottom = {
+                .x = (int)columns[i].x,
+                .y = (int)(columns[i].gap_y + columns[i].gap_height),
+                .w = (int)columns[i].width,
+                .h = bottom_height};
+            SDL_RenderCopy(renderer, pipe_texture, NULL, &bottom);
+        }
     }
 }
 
@@ -79,22 +87,18 @@ void init_columns(Column columns[NUM_COLUMNS])
     }
 }
 
-void render_bird(SDL_Renderer *renderer, Bird bird)
+void render_bird(SDL_Renderer *renderer, SDL_Texture *bird_texture, Bird bird)
 {
-    SDL_SetRenderDrawColor(renderer, 255, 237, 35, 0);
-    int radius = 10;
-    for (int w = 0; w < radius * 2; w++)
-    {
-        for (int h = 0; h < radius * 2; h++)
-        {
-            int dx = radius - w;
-            int dy = radius - h;
-            if (dx * dx + dy * dy <= radius * radius)
-            {
-                SDL_RenderDrawPoint(renderer, bird.x + dx, bird.y + dy);
-            }
-        }
-    }
+    int bird_width = 32;
+    int bird_height = 32;
+
+    SDL_Rect dest = {
+        (int)(bird.x - bird_width / 2),
+        (int)(bird.y - bird_height / 2),
+        bird_width,
+        bird_height};
+
+    SDL_RenderCopy(renderer, bird_texture, NULL, &dest);
 }
 
 void apply_gravity(Bird *bird, double dt)
@@ -117,7 +121,7 @@ void move_columns(Column *columns, int passed[NUM_COLUMNS])
         // printf("%d\n", columns[9].x + columns[9].width);
         if (columns[i].x + columns[i].width < 0)
         {
-            // printf("Rimetto a destra la colonna %d\n", i);
+            // I return the i-th column to the right
             int rightmost = find_rightmost_x(columns);
             columns[i].x = rightmost + 200;
             columns[i].gap_y = rand() % (HEIGHT - 200);
@@ -153,26 +157,25 @@ int check_collision(Column columns[NUM_COLUMNS], Bird bird)
 
 void render_text(SDL_Renderer *renderer, TTF_Font *font, int game_over)
 {
-    char text[64]; // Aumenta un po' per sicurezza
+    char text[64];
     if (game_over)
         snprintf(text, sizeof(text), "SCORE: %d  |  Press R to replay", score);
     else
         snprintf(text, sizeof(text), "%d", score);
 
-    SDL_Color color = {0, 0, 0, 0}; // nero
+    SDL_Color color = {0, 0, 0, 0}; // black
 
     SDL_Surface *surface = TTF_RenderText_Solid(font, text, color);
     if (!surface)
         return;
 
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
     if (!texture)
         return;
 
     SDL_Rect dst = {0, 50, 0, 0};
     SDL_QueryTexture(texture, NULL, NULL, &dst.w, &dst.h);
-    dst.x = (WIDTH - dst.w) / 2; // Centra orizzontalmente
+    dst.x = (WIDTH - dst.w) / 2;
 
     SDL_RenderCopy(renderer, texture, NULL, &dst);
     SDL_DestroyTexture(texture);
@@ -190,6 +193,12 @@ int main()
     if (TTF_Init() == -1)
     {
         printf("TTF_Init Error: %s\n", TTF_GetError());
+        return 1;
+    }
+    if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG))
+    {
+        printf("IMG_Init Error: %s\n", IMG_GetError());
+        SDL_Quit();
         return 1;
     }
 
@@ -211,6 +220,8 @@ int main()
         SDL_Quit();
         return 1;
     }
+
+    // FONT
     TTF_Font *font = TTF_OpenFont("FreeSansBold.otf", 32);
     if (!font)
     {
@@ -220,6 +231,43 @@ int main()
         SDL_Quit();
         return 1;
     }
+
+    // TEXTURES
+    SDL_Surface *bird_surface = IMG_Load("textures/bird.png");
+    if (!bird_surface)
+    {
+        printf("IMG_Load Error: %s\n", IMG_GetError());
+        return 1;
+    }
+
+    SDL_Texture *bird_texture = SDL_CreateTextureFromSurface(renderer, bird_surface);
+    SDL_FreeSurface(bird_surface);
+
+    SDL_SetTextureBlendMode(bird_texture, SDL_BLENDMODE_BLEND);
+    if (!bird_texture)
+    {
+        printf("Failed to load bird texture: %s\n", IMG_GetError());
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+
+    SDL_Surface *bg_surface = IMG_Load("textures/background.png");
+    if (!bg_surface)
+    {
+        printf("Failed to load background: %s\n", IMG_GetError());
+    }
+    SDL_Texture *bg_texture = SDL_CreateTextureFromSurface(renderer, bg_surface);
+    SDL_FreeSurface(bg_surface);
+
+    SDL_Surface *pipe_surface = IMG_Load("textures/pipe.png");
+    if (!pipe_surface)
+    {
+        printf("Failed to load pipe: %s\n", IMG_GetError());
+    }
+    SDL_Texture *pipe_texture = SDL_CreateTextureFromSurface(renderer, pipe_surface);
+    SDL_FreeSurface(pipe_surface);
 
     int running = 1;
     SDL_Event event;
@@ -237,6 +285,9 @@ int main()
     {
         SDL_SetRenderDrawColor(renderer, 39, 232, 245, 0);
         SDL_RenderClear(renderer);
+
+        SDL_Rect bg_dest = {0, 0, WIDTH, HEIGHT};
+        SDL_RenderCopy(renderer, bg_texture, NULL, &bg_dest);
 
         Uint32 now = SDL_GetTicks();
         double dt = (now - prev_ticks) / 1000.0; // in seconds
@@ -257,7 +308,7 @@ int main()
                         playing = 1;
                     }
                     break;
-                case SDLK_r:
+                case SDLK_r: // reset
                     bird.x = 100;
                     bird.y = HEIGHT / 2;
                     bird.vy = 10.0;
@@ -271,8 +322,9 @@ int main()
             }
         }
 
-        generate_gap_column(renderer, columns);
-        render_bird(renderer, bird);
+        render_columns(renderer, pipe_texture, columns);
+        render_bird(renderer, bird_texture, bird);
+
         if (playing)
         {
             move_columns(columns, passed);
