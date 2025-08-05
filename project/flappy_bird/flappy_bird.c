@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <SDL2/SDL_ttf.h>
 
-#define WIDTH 900
+#define WIDTH 600
 #define HEIGHT 600
 #define NUM_COLUMNS 10
 #define GRAVITY 800.0
@@ -151,30 +151,29 @@ int check_collision(Column columns[NUM_COLUMNS], Bird bird)
     return 0;
 }
 
-void update_score(SDL_Renderer *renderer, TTF_Font *font, int score)
+void render_text(SDL_Renderer *renderer, TTF_Font *font, int game_over)
 {
-    char text[32];
-    snprintf(text, sizeof(text), "%d", score);
+    char text[64]; // Aumenta un po' per sicurezza
+    if (game_over)
+        snprintf(text, sizeof(text), "SCORE: %d  |  Press R to replay", score);
+    else
+        snprintf(text, sizeof(text), "%d", score);
 
-    SDL_Color color = {0, 0, 0, 0}; // black
+    SDL_Color color = {0, 0, 0, 0}; // nero
 
     SDL_Surface *surface = TTF_RenderText_Solid(font, text, color);
     if (!surface)
-    {
-        printf("Text render error: %s\n", TTF_GetError());
         return;
-    }
 
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
     if (!texture)
-    {
-        printf("Texture error: %s\n", SDL_GetError());
         return;
-    }
 
-    SDL_Rect dst = {WIDTH / 2, 50, 0, 0}; // posizione in alto a sinistra
+    SDL_Rect dst = {0, 50, 0, 0};
     SDL_QueryTexture(texture, NULL, NULL, &dst.w, &dst.h);
+    dst.x = (WIDTH - dst.w) / 2; // Centra orizzontalmente
+
     SDL_RenderCopy(renderer, texture, NULL, &dst);
     SDL_DestroyTexture(texture);
 }
@@ -224,7 +223,8 @@ int main()
 
     int running = 1;
     SDL_Event event;
-    int start = 0;
+    int playing = 0;
+    int game_over;
 
     Column columns[NUM_COLUMNS];
     int passed[NUM_COLUMNS] = {0};
@@ -251,16 +251,29 @@ int main()
                 switch (event.key.keysym.sym)
                 {
                 case SDLK_SPACE:
-                    start = 1;
-                    jump(&bird);
+                    if (!game_over)
+                    {
+                        jump(&bird);
+                        playing = 1;
+                    }
                     break;
+                case SDLK_r:
+                    bird.x = 100;
+                    bird.y = HEIGHT / 2;
+                    bird.vy = 10.0;
+                    playing = 1;
+                    game_over = 0;
+                    score = 0;
+                    init_columns(columns);
+                    for (int i = 0; i < NUM_COLUMNS; i++)
+                        passed[i] = 0;
                 }
             }
         }
 
         generate_gap_column(renderer, columns);
         render_bird(renderer, bird);
-        if (start)
+        if (playing)
         {
             move_columns(columns, passed);
             apply_gravity(&bird, dt);
@@ -273,10 +286,14 @@ int main()
                     score++;
                 }
             }
-            update_score(renderer, font, score);
+            render_text(renderer, font, 0);
             if (check_collision(columns, bird))
-                start = 0;
+            {
+                playing = 0;
+                game_over = 1;
+            }
         }
+        render_text(renderer, font, game_over);
         SDL_RenderPresent(renderer);
         SDL_Delay(16);
     }
