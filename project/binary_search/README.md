@@ -23,7 +23,7 @@ The function uses two indexes, left and right, to define the current search boun
 - If the element is not found, it returns -1.
 5.	Output: Prints the index if the number is found; otherwise prints a “not found” message.
 
-What is Binary Search?
+# What is Binary Search?
 
 Binary search is an efficient algorithm to find an element in a sorted array, with time complexity O(log n). It works by repeatedly dividing the search interval in half:
 - Start by comparing the target to the middle element.
