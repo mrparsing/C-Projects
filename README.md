@@ -33,6 +33,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Palindrome checker](./project/palindrome_checker/)** — A program that checks whether a string passed via the command line is a **palindrome**
 - **[Number Base Converter](./project/base_converter/)** — A command-line tool written in C to convert numbers between Decimal, Binary, and Hexadecimal systems.
 - **[Word and Character Counter](./project/word_counter/)** — A program that reads a text file and counts the number of **words** and the number of **characters**.
+- **[Binary Search](./project/binary_search/)** — A binary search implementation.
 
 ---
 
