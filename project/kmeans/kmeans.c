@@ -2,10 +2,17 @@
 #include <time.h>
 #include <math.h>
 #include <stdlib.h>
+#include <SDL2/SDL.h>
 
 #define K 3 // clusters
 #define MAX_ITERS 100
 #define N 45 // number of points
+#define WIDTH 900
+#define HEIGHT 600
+#define CELL_SIZE 100
+#define NUM_CELL (WIDTH / CELL_SIZE) * (HEIGHT / CELL_SIZE)
+#define ROWS HEIGHT / CELL_SIZE
+#define COLUMNS WIDTH / CELL_SIZE
 
 typedef struct
 {
@@ -91,6 +98,31 @@ void kmeans(Point data[], int n)
     }
 }
 
+void draw_grid(SDL_Surface *surface, Uint32 color)
+{
+    SDL_Rect line;
+
+    // Vertical lines
+    for (int x = 100; x <= WIDTH - 100; x += CELL_SIZE)
+    {
+        line.x = x;
+        line.y = 100;
+        line.w = 1;
+        line.h = HEIGHT - 200;
+        SDL_FillRect(surface, &line, color);
+    }
+
+    // Horizontal lines
+    for (int y = 100; y <= HEIGHT - 100; y += CELL_SIZE)
+    {
+        line.x = 100;
+        line.y = y;
+        line.w = WIDTH - 200;
+        line.h = 1;
+        SDL_FillRect(surface, &line, color);
+    }
+}
+
 int main()
 {
     Point data[N] = {
@@ -152,4 +184,40 @@ int main()
     }
 
     kmeans(data, N);
+
+    if (SDL_Init(SDL_INIT_VIDEO) != 0)
+    {
+        fprintf(stderr, "SDL_Init error: %s\n", SDL_GetError());
+        return 1;
+    }
+
+    SDL_Window *window = SDL_CreateWindow(
+        "K-means",
+        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        WIDTH, HEIGHT,
+        SDL_WINDOW_SHOWN);
+
+    SDL_Surface *surface = SDL_GetWindowSurface(window);
+
+    Uint32 color_gray = SDL_MapRGB(surface->format, 130, 130, 130);
+    draw_grid(surface, color_gray);
+
+    int running = 1;
+    SDL_Event event;
+    while (running)
+    {
+        // Event handling
+        while (SDL_PollEvent(&event))
+        {
+            if (event.type == SDL_QUIT)
+            {
+                running = 0;
+            }
+        }
+        SDL_UpdateWindowSurface(window);
+        SDL_Delay(10);
+    }
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    return 0;
 }
