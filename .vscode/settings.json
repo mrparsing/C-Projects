@@ -9,6 +9,7 @@
         "locale": "c",
         "termios.h": "c",
         "stdbool.h": "c",
-        "unistd.h": "c"
+        "unistd.h": "c",
+        "bit": "c"
     }
 }
