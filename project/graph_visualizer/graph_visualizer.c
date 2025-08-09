@@ -5,6 +5,7 @@
 #include <time.h>
 #include <limits.h>
 #include <SDL2/SDL_ttf.h>
+#include <string.h>
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
@@ -91,7 +92,6 @@ int is_point_in_node(int mx, int my, Node *node)
 void bellman_ford(Node nodes[], int nodes_count, Edge edges[], int edges_count,
                   int dist[], int pred[], int *has_negative_cycle)
 {
-    // Initialize distances and predecessors
     for (int i = 0; i < nodes_count; i++)
     {
         dist[i] = INF;
@@ -117,7 +117,6 @@ void bellman_ford(Node nodes[], int nodes_count, Edge edges[], int edges_count,
 
     dist[source_index] = 0;
 
-    // Relax all edges |V|-1 times
     for (int i = 1; i <= nodes_count - 1; i++)
     {
         for (int j = 0; j < edges_count; j++)
@@ -134,7 +133,6 @@ void bellman_ford(Node nodes[], int nodes_count, Edge edges[], int edges_count,
         }
     }
 
-    // check for negative cycles
     *has_negative_cycle = 0;
     for (int j = 0; j < edges_count; j++)
     {
@@ -147,6 +145,68 @@ void bellman_ford(Node nodes[], int nodes_count, Edge edges[], int edges_count,
             *has_negative_cycle = 1;
             printf("Negative cycle detected!\n");
             return;
+        }
+    }
+}
+
+void dijkstra(Node nodes[], Edge edges[], int dist[], int pred[], int nodes_count, int edges_count)
+{
+    int visited[nodes_count];
+    for (int i = 0; i < nodes_count; i++)
+    {
+        dist[i] = INF;
+        pred[i] = -1;
+        visited[i] = 0;
+    }
+
+    int source_index = -1;
+    for (int i = 0; i < nodes_count; i++)
+    {
+        if (nodes[i].is_source)
+        {
+            source_index = i;
+            break;
+        }
+    }
+
+    if (source_index == -1)
+    {
+        printf("No source node found!\n");
+        return;
+    }
+
+    dist[source_index] = 0;
+
+    for (int count = 0; count < nodes_count - 1; count++)
+    {
+        int u = -1;
+        int min_dist = INF;
+        for (int i = 0; i < nodes_count; i++)
+        {
+            if (!visited[i] && dist[i] < min_dist)
+            {
+                u = i;
+                min_dist = dist[i];
+            }
+        }
+        if (u == -1)
+        {
+            break;
+        }
+        visited[u] = 1;
+
+        for (int i = 0; i < edges_count; i++)
+        {
+            if (edges[i].from == u)
+            {
+                int v = edges[i].to;
+                int weight = edges[i].weight;
+                if (!visited[v] && dist[u] + weight < dist[v])
+                {
+                    dist[v] = dist[u] + weight;
+                    pred[v] = u;
+                }
+            }
         }
     }
 }
@@ -205,7 +265,7 @@ int main()
     int has_negative_cycle = 0;
     int path_nodes[MAX_NODES];
     int path_length = 0;
-    int bf_run = 0;
+    const char *last_algorithm = "none";
 
     int running = 1;
     SDL_Event event;
@@ -240,7 +300,7 @@ int main()
                 {
                     bellman_ford(nodes, nodes_count, edges, edges_count,
                                  dist, pred, &has_negative_cycle);
-                    bf_run = 1;
+                    last_algorithm = "bellman_ford";
 
                     path_length = 0;
                     int goal_index = -1;
@@ -255,13 +315,39 @@ int main()
 
                     if (goal_index != -1 && !has_negative_cycle)
                     {
-                        // trace back from goal to source
                         int current = goal_index;
                         while (current != -1 && path_length < MAX_NODES)
                         {
                             path_nodes[path_length++] = current;
                             current = pred[current];
                         }
+                    }
+                }
+                else if (event.key.keysym.sym == SDLK_d)
+                {
+                    dijkstra(nodes, edges, dist, pred, nodes_count, edges_count);
+                    last_algorithm = "dijkstra";
+
+                    path_length = 0;
+                    int goal_index = -1;
+                    for (int i = 0; i < nodes_count; i++)
+                    {
+                        if (nodes[i].is_goal)
+                        {
+                            goal_index = i;
+                            break;
+                        }
+                    }
+
+                    if (goal_index != -1)
+                    {
+                        int current = goal_index;
+                        while (current != -1 && path_length < MAX_NODES)
+                        {
+                            path_nodes[path_length++] = current;
+                            current = pred[current];
+                        }
+                    
                     }
                 }
                 break;
@@ -295,16 +381,14 @@ int main()
                                     for (int j = 0; j < nodes_count; j++)
                                         nodes[j].is_source = 0;
                                     nodes[i].is_source = 1;
-                                    //printf("Source %d\n", i);
                                 }
                                 else if (g_pressed)
                                 {
                                     for (int j = 0; j < nodes_count; j++)
                                         nodes[j].is_goal = 0;
                                     nodes[i].is_goal = 1;
-                                    //printf("Goal %d\n", i);
                                 }
-                                bf_run = 0;
+                                last_algorithm = "none";
                                 break;
                             }
                         }
@@ -325,12 +409,11 @@ int main()
                                     {
                                         edges[edges_count].from = selected_node;
                                         edges[edges_count].to = i;
-                                        edges[edges_count].weight = rand() % 20 + 1; // weight 1-20
+                                        edges[edges_count].weight = rand() % 20 + 1;
                                         edges_count++;
-                                        //printf("Added edge %d->%d with weight %d\n", selected_node, i, edges[edges_count - 1].weight);
                                     }
                                     selected_node = -1;
-                                    bf_run = 0;
+                                    last_algorithm = "none";
                                 }
                                 break;
                             }
@@ -360,7 +443,7 @@ int main()
                         nodes[nodes_count].is_source = 0;
                         nodes[nodes_count].is_goal = 0;
                         nodes_count++;
-                        bf_run = 0;
+                        last_algorithm = "none";
                     }
                 }
                 break;
@@ -400,7 +483,7 @@ int main()
             int t = edges[i].to;
 
             int in_path = 0;
-            if (bf_run && !has_negative_cycle)
+            if (strcmp(last_algorithm, "none") != 0 && path_length > 0)
             {
                 for (int j = 0; j < path_length - 1; j++)
                 {
@@ -415,11 +498,11 @@ int main()
 
             if (in_path)
             {
-                SDL_SetRenderDrawColor(renderer, 0, 150, 255, 255); // blue for the path
+                SDL_SetRenderDrawColor(renderer, 0, 150, 255, 255);
             }
             else
             {
-                SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255); // gray
+                SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
             }
 
             draw_arrow(renderer, nodes[f].x, nodes[f].y, nodes[t].x, nodes[t].y);
@@ -435,7 +518,7 @@ int main()
         for (int i = 0; i < nodes_count; i++)
         {
             int in_path = 0;
-            if (bf_run && !has_negative_cycle)
+            if (strcmp(last_algorithm, "none") != 0 && path_length > 0)
             {
                 for (int j = 0; j < path_length; j++)
                 {
@@ -449,19 +532,19 @@ int main()
 
             if (nodes[i].is_source)
             {
-                SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // green for source node
+                SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
             }
             else if (nodes[i].is_goal)
             {
-                SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // red for goal node
+                SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
             }
             else if (in_path)
             {
-                SDL_SetRenderDrawColor(renderer, 0, 150, 255, 255); // blue for node in the path
+                SDL_SetRenderDrawColor(renderer, 0, 150, 255, 255);
             }
             else
             {
-                SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255); // else gray
+                SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
             }
 
             draw_circle(renderer, nodes[i].x, nodes[i].y, NODE_RADIUS);
@@ -473,7 +556,7 @@ int main()
             draw_text(renderer, font, nodes[i].x - 5, nodes[i].y - 6, id_text, white);
         }
 
-        if (bf_run)
+        if (strcmp(last_algorithm, "bellman_ford") == 0)
         {
             if (has_negative_cycle)
             {
@@ -491,7 +574,6 @@ int main()
                         break;
                     }
                 }
-
                 if (goal_index != -1)
                 {
                     char result_text[50];
@@ -501,11 +583,37 @@ int main()
                     }
                     else
                     {
-                        snprintf(result_text, sizeof(result_text), "Shortest path: %d", dist[goal_index]);
+                        snprintf(result_text, sizeof(result_text), "Bellman-Ford -> Shortest path: %d", dist[goal_index]);
                     }
                     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
                     draw_text(renderer, font, 10, 10, result_text, white);
                 }
+            }
+        }
+        else if (strcmp(last_algorithm, "dijkstra") == 0)
+        {
+            int goal_index = -1;
+            for (int i = 0; i < nodes_count; i++)
+            {
+                if (nodes[i].is_goal)
+                {
+                    goal_index = i;
+                    break;
+                }
+            }
+            if (goal_index != -1)
+            {
+                char result_text[50];
+                if (dist[goal_index] == INF)
+                {
+                    snprintf(result_text, sizeof(result_text), "Goal unreachable");
+                }
+                else
+                {
+                    snprintf(result_text, sizeof(result_text), "Dijkstra -> Shortest path: %d", dist[goal_index]);
+                }
+                SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+                draw_text(renderer, font, 10, 10, result_text, white);
             }
         }
 
