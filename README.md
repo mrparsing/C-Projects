@@ -80,6 +80,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[RSA Encryption and Decryption with GMP](./project/rsa/)** — RSA implementation using C and the GMP library for handling big numbers.  
 - **[Sudoku Generator & Solver](./project/sudoku/)** — Generates a **fully‑valid Sudoku** and solves it with backtracking.
 - **[Shell](./project/shell/)** — A minimal command-line shell-like emulator written in C using the ncurses library.
+- **[Black Hole - 2D](./project/shell/)** — A program that traces light rays’ paths around a black hole using the geodesic equations of the Schwarzschild metric. It visually demonstrates how spacetime curvature bends ray trajectories with dynamic animations and colorful trails
 
 ---
 
