@@ -278,6 +278,7 @@ void drawRay(const Ray *ray)
 {
     double length = 20.0;
     glColor3f(1.0f, 1.0f, 0.0f);
+    glLineWidth(3.0f); 
     glBegin(GL_LINES);
     glVertex2f(ray->x, ray->y);
     glVertex2f(ray->x + ray->direction.x * length, ray->y + ray->direction.y * length);
