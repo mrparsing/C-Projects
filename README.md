@@ -80,7 +80,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[RSA Encryption and Decryption with GMP](./project/rsa/)** — RSA implementation using C and the GMP library for handling big numbers.  
 - **[Sudoku Generator & Solver](./project/sudoku/)** — Generates a **fully‑valid Sudoku** and solves it with backtracking.
 - **[Shell](./project/shell/)** — A minimal command-line shell-like emulator written in C using the ncurses library.
-- **[Black Hole - 2D](./project/shell/)** — A program that traces light rays’ paths around a black hole using the geodesic equations of the Schwarzschild metric. It visually demonstrates how spacetime curvature bends ray trajectories with dynamic animations and colorful trails
+- **[Black Hole - 2D](./project/black_hole_2d/)** — A program that traces light rays’ paths around a black hole using the geodesic equations of the Schwarzschild metric. It visually demonstrates how spacetime curvature bends ray trajectories with dynamic animations and colorful trails
 
 ---
 
@@ -88,7 +88,8 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 
 - **[Ping from Scratch](./project/ping_from_scratch/)** — Just reimplementing the ping command from scratch.
 - **[AES-128](./project/aes/)** — A **minimal implementation** of core AES-128 encryption & decryption steps.
-- **[Liquid simulation](./project/liquid%20simulation/)** — A program that simulates water flowing through a grid of square cells using a very simple cellular model.  
+- **[Liquid simulation](./project/liquid%20simulation/)** — A program that simulates water flowing through a grid of square cells using a very simple cellular model.
+- **[Black Hole - 3D](./project/black_hole_3d/)** — The project is a 3D black hole simulator visualizing light ray trajectories, gravitational distortions, and an accretion disk using OpenGL and GLFW. It enables real-time interaction with camera controls, predefined scenarios, and physical parameters like the Schwarzschild radius.
 
 ---
 
