@@ -54,6 +54,8 @@ typedef struct
     int trail_length;
     Color color;
     int active;
+    int absorbed;  // flag to indicate if ray was absorbed
+    int fade_timer; // timer for fading out trail after absorption
 } Ray;
 
 typedef struct
@@ -217,6 +219,8 @@ int main(void)
         r->angular_momentum = r->r * r->r * sin_theta * sin_theta * r->dphi;
 
         r->active = 1;
+        r->absorbed = 0;
+        r->fade_timer = 0;
     }
 
     updateCameraVectors();
@@ -297,11 +301,15 @@ int main(void)
         for (int i = 0; i < ray_count; i++)
         {
             Ray *r = &arrayRays.rays[i];
-            if (!r->active)
-                continue;
-
-            drawAdvancedTrail(r, &blackhole);
-            if (r->r > blackhole.schwarzschild_radius * 1.1)
+            
+            // Always draw trail, even for absorbed rays (until fade completes)
+            if (r->trail_length > 1)
+            {
+                drawAdvancedTrail(r, &blackhole);
+            }
+            
+            // Only draw the ray itself if it's still active and not absorbed
+            if (r->active && !r->absorbed && r->r > blackhole.schwarzschild_radius * 1.1)
             {
                 drawRay(r);
             }
@@ -320,7 +328,6 @@ int main(void)
 
         if (reset)
         {
-
             resetSimulation(&emitter, &emitter2, &arrayRays.rays, &blackhole);
             reset = 0;
         }
@@ -332,6 +339,193 @@ int main(void)
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
+}
+
+void updateRaysWithRelativity(Ray *rays, int num_rays, const BlackHole *bh, double dt)
+{
+    for (int i = 0; i < num_rays; i++)
+    {
+        Ray *r = &rays[i];
+        
+        // Handle absorbed rays - let them fade out gradually
+        if (r->absorbed)
+        {
+            r->fade_timer++;
+            if (r->fade_timer > 120)  // Fade for 120 frames (~2 seconds at 60fps)
+            {
+                r->active = 0;  // Finally deactivate completely
+            }
+            continue;  // Skip physics update for absorbed rays
+        }
+        
+        if (!r->active)
+            continue;
+
+        // Add to trail only if ray is still active
+        r->trail[r->trail_head] = r->position;
+        r->trail_head = (r->trail_head + 1) % MAX_TRAIL_POINTS;
+        if (r->trail_length < MAX_TRAIL_POINTS)
+            r->trail_length++;
+
+        // Check if ray is approaching event horizon
+        if (r->r <= bh->schwarzschild_radius * 1.05)  // Very close to event horizon
+        {
+            r->absorbed = 1;  // Mark as absorbed but don't deactivate yet
+            r->fade_timer = 0;
+            continue;
+        }
+
+        // Calculate local time dilation
+        double dilation = calculateTimeDilation(r->r, bh->schwarzschild_radius);
+        double effective_dt = dt * dilation * time_dilation_factor;
+
+        // Update physics if far enough from event horizon
+        if (r->r > bh->schwarzschild_radius * 1.1)
+        {
+            State s = {r->r, r->theta, r->phi, r->dr, r->dtheta, r->dphi, r->energy, r->angular_momentum};
+            rk4_step(&s, effective_dt, bh->schwarzschild_radius);
+
+            r->r = s.r;
+            r->theta = s.theta;
+            r->phi = s.phi;
+            r->dr = s.dr;
+            r->dtheta = s.dtheta;
+            r->dphi = s.dphi;
+
+            updateCartesianFromPolar(r, bh);
+
+            // Update direction vector
+            double sin_theta = sin(r->theta);
+            double cos_theta = cos(r->theta);
+            double sin_phi = sin(r->phi);
+            double cos_phi = cos(r->phi);
+
+            double vx = r->dr * sin_theta * cos_phi + r->r * cos_theta * cos_phi * r->dtheta - r->r * sin_theta * sin_phi * r->dphi;
+            double vy = r->dr * sin_theta * sin_phi + r->r * cos_theta * sin_phi * r->dtheta + r->r * sin_theta * cos_phi * r->dphi;
+            double vz = r->dr * cos_theta - r->r * sin_theta * r->dtheta;
+
+            double len = sqrt(vx * vx + vy * vy + vz * vz);
+            if (len > 0)
+            {
+                r->direction.x = vx / len;
+                r->direction.y = vy / len;
+                r->direction.z = vz / len;
+            }
+        }
+
+        // Deactivate rays that are too far away
+        if (r->r > 200.0)
+        {
+            r->active = 0;
+        }
+    }
+}
+
+void drawAdvancedTrail(const Ray *ray, const BlackHole *bh)
+{
+    if (ray->trail_length < 2)
+        return;
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glLineWidth(2.0f);
+
+    glBegin(GL_LINE_STRIP);
+    for (int i = 0; i < ray->trail_length - 1; i++)
+    {
+        int idx = (ray->trail_head - ray->trail_length + i + MAX_TRAIL_POINTS) % MAX_TRAIL_POINTS;
+        int next_idx = (ray->trail_head - ray->trail_length + i + 1 + MAX_TRAIL_POINTS) % MAX_TRAIL_POINTS;
+
+        // Calculate velocity for Doppler effect simulation
+        Vector3 velocity;
+        velocity.x = ray->trail[next_idx].x - ray->trail[idx].x;
+        velocity.y = ray->trail[next_idx].y - ray->trail[idx].y;
+        velocity.z = ray->trail[next_idx].z - ray->trail[idx].z;
+
+        double speed = sqrt(velocity.x * velocity.x + velocity.y * velocity.y + velocity.z * velocity.z);
+
+        // Calculate distance to black hole for redshift effect
+        double dx = ray->trail[idx].x - bh->position.x;
+        double dy = ray->trail[idx].y - bh->position.y;
+        double dz = ray->trail[idx].z - bh->position.z;
+        double dist_to_bh = sqrt(dx * dx + dy * dy + dz * dz);
+
+        // Gravitational redshift factor
+        double redshift_factor = 1.0 - bh->schwarzschild_radius / (2.0 * dist_to_bh);
+
+        // Color based on velocity and redshift
+        float red = 1.0f - speed * 0.3f + (1.0f - redshift_factor) * 2.0f;
+        float green = 0.5f + speed * 0.2f;
+        float blue = speed + redshift_factor * 0.5f;
+        float alpha = (float)i / ray->trail_length;
+
+        // Apply fading for absorbed rays
+        if (ray->absorbed && ray->fade_timer > 0)
+        {
+            float fade_factor = 1.0f - ((float)ray->fade_timer / 120.0f);
+            alpha *= fade_factor;
+            red *= fade_factor;
+            green *= fade_factor;
+            blue *= fade_factor;
+        }
+
+        red = fmax(0.0f, fmin(1.0f, red));
+        green = fmax(0.0f, fmin(1.0f, green));
+        blue = fmax(0.0f, fmin(1.0f, blue));
+
+        glColor4f(red, green, blue, alpha * 0.9f);
+        glVertex3f(ray->trail[idx].x, ray->trail[idx].y, ray->trail[idx].z);
+    }
+    glEnd();
+    glDisable(GL_BLEND);
+}
+
+void resetSimulation(Emitter *emitter, Emitter *emitter2, Ray *rays, const BlackHole *bh)
+{
+    // Reset emitter to default position
+    initEmitter(emitter);
+    initEmitter2(emitter2);
+
+    // Regenerate and reinitialize rays for both emitters
+    generateRays(emitter, rays, NUM_RAYS / 2, bh);
+    generateRays(emitter2, rays + NUM_RAYS / 2, NUM_RAYS / 2, bh);
+
+    // Reinitialize ray physics for all rays
+    for (int i = 0; i < NUM_RAYS; i++)
+    {
+        Ray *r = &rays[i];
+        updatePolarCoordinates(r, bh);
+
+        double vx = r->direction.x * C_SPEED;
+        double vy = r->direction.y * C_SPEED;
+        double vz = r->direction.z * C_SPEED;
+
+        double sin_theta = sin(r->theta);
+        double cos_theta = cos(r->theta);
+        double sin_phi = sin(r->phi);
+        double cos_phi = cos(r->phi);
+
+        r->dr = sin_theta * cos_phi * vx + sin_theta * sin_phi * vy + cos_theta * vz;
+        r->dtheta = (cos_theta * cos_phi * vx + cos_theta * sin_phi * vy - sin_theta * vz) / r->r;
+        r->dphi = (-sin_phi * vx + cos_phi * vy) / (r->r * sin_theta);
+
+        // Calculate conserved quantities
+        double A = 1.0 - bh->schwarzschild_radius / r->r;
+        r->energy = A * (1.0 + r->dr * r->dr / A);
+        r->angular_momentum = r->r * r->r * sin_theta * sin_theta * r->dphi;
+
+        r->active = 1;
+        r->absorbed = 0;  // Reset absorption flag
+        r->fade_timer = 0; // Reset fade timer
+        r->trail_length = 0;
+        r->trail_head = 0;
+    }
+
+    // Reset simulation parameters
+    time_dilation_factor = 1.0f;
+    paused = 0;
+
+    printf("Simulation reset to initial state\n");
 }
 
 void processInput(GLFWwindow *window)
@@ -561,70 +755,6 @@ double calculateTimeDilation(double r, double rs)
     return sqrt(1.0 - rs / r);
 }
 
-void updateRaysWithRelativity(Ray *rays, int num_rays, const BlackHole *bh, double dt)
-{
-    for (int i = 0; i < num_rays; i++)
-    {
-        Ray *r = &rays[i];
-        if (!r->active)
-            continue;
-
-        // Add to trail
-        r->trail[r->trail_head] = r->position;
-        r->trail_head = (r->trail_head + 1) % MAX_TRAIL_POINTS;
-        if (r->trail_length < MAX_TRAIL_POINTS)
-            r->trail_length++;
-
-        // Calculate local time dilation
-        double dilation = calculateTimeDilation(r->r, bh->schwarzschild_radius);
-        double effective_dt = dt * dilation * time_dilation_factor;
-
-        // Update only if not too close to event horizon
-        if (r->r > bh->schwarzschild_radius * 1.1)
-        {
-            State s = {r->r, r->theta, r->phi, r->dr, r->dtheta, r->dphi, r->energy, r->angular_momentum};
-            rk4_step(&s, effective_dt, bh->schwarzschild_radius);
-
-            r->r = s.r;
-            r->theta = s.theta;
-            r->phi = s.phi;
-            r->dr = s.dr;
-            r->dtheta = s.dtheta;
-            r->dphi = s.dphi;
-
-            updateCartesianFromPolar(r, bh);
-
-            // Update direction vector
-            double sin_theta = sin(r->theta);
-            double cos_theta = cos(r->theta);
-            double sin_phi = sin(r->phi);
-            double cos_phi = cos(r->phi);
-
-            double vx = r->dr * sin_theta * cos_phi + r->r * cos_theta * cos_phi * r->dtheta - r->r * sin_theta * sin_phi * r->dphi;
-            double vy = r->dr * sin_theta * sin_phi + r->r * cos_theta * sin_phi * r->dtheta + r->r * sin_theta * cos_phi * r->dphi;
-            double vz = r->dr * cos_theta - r->r * sin_theta * r->dtheta;
-
-            double len = sqrt(vx * vx + vy * vy + vz * vz);
-            if (len > 0)
-            {
-                r->direction.x = vx / len;
-                r->direction.y = vy / len;
-                r->direction.z = vz / len;
-            }
-        }
-        else
-        {
-            r->active = 0; // Ray has fallen past event horizon
-        }
-
-        // Deactivate rays that are too far away
-        if (r->r > 200.0)
-        {
-            r->active = 0;
-        }
-    }
-}
-
 void updateCartesianFromPolar(Ray *r, const BlackHole *bh)
 {
     r->position.x = bh->position.x + r->r * sin(r->theta) * cos(r->phi);
@@ -750,55 +880,6 @@ void drawDistortedGrid(const BlackHole *bh)
         }
         glEnd();
     }
-    glDisable(GL_BLEND);
-}
-
-void drawAdvancedTrail(const Ray *ray, const BlackHole *bh)
-{
-    if (ray->trail_length < 2)
-        return;
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    glLineWidth(2.0f);
-
-    glBegin(GL_LINE_STRIP);
-    for (int i = 0; i < ray->trail_length - 1; i++)
-    {
-        int idx = (ray->trail_head - ray->trail_length + i + MAX_TRAIL_POINTS) % MAX_TRAIL_POINTS;
-        int next_idx = (ray->trail_head - ray->trail_length + i + 1 + MAX_TRAIL_POINTS) % MAX_TRAIL_POINTS;
-
-        // Calculate velocity for Doppler effect simulation
-        Vector3 velocity;
-        velocity.x = ray->trail[next_idx].x - ray->trail[idx].x;
-        velocity.y = ray->trail[next_idx].y - ray->trail[idx].y;
-        velocity.z = ray->trail[next_idx].z - ray->trail[idx].z;
-
-        double speed = sqrt(velocity.x * velocity.x + velocity.y * velocity.y + velocity.z * velocity.z);
-
-        // Calculate distance to black hole for redshift effect
-        double dx = ray->trail[idx].x - bh->position.x;
-        double dy = ray->trail[idx].y - bh->position.y;
-        double dz = ray->trail[idx].z - bh->position.z;
-        double dist_to_bh = sqrt(dx * dx + dy * dy + dz * dz);
-
-        // Gravitational redshift factor
-        double redshift_factor = 1.0 - bh->schwarzschild_radius / (2.0 * dist_to_bh);
-
-        // Color based on velocity and redshift
-        float red = 1.0f - speed * 0.3f + (1.0f - redshift_factor) * 2.0f;
-        float green = 0.5f + speed * 0.2f;
-        float blue = speed + redshift_factor * 0.5f;
-        float alpha = (float)i / ray->trail_length;
-
-        red = fmax(0.0f, fmin(1.0f, red));
-        green = fmax(0.0f, fmin(1.0f, green));
-        blue = fmax(0.0f, fmin(1.0f, blue));
-
-        glColor4f(red, green, blue, alpha * 0.9f);
-        glVertex3f(ray->trail[idx].x, ray->trail[idx].y, ray->trail[idx].z);
-    }
-    glEnd();
     glDisable(GL_BLEND);
 }
 
@@ -1375,52 +1456,6 @@ void updateRaysLOD(Ray *rays, int num_rays, const Camera *cam, const BlackHole *
             should_update = (frame_count % 2 == 0); // Update every 2nd frame
         }
     }
-}
-
-void resetSimulation(Emitter *emitter, Emitter *emitter2, Ray *rays, const BlackHole *bh)
-{
-    // Reset emitter to default position
-    initEmitter(emitter);
-    initEmitter2(emitter2);
-
-    // Regenerate and reinitialize rays for both emitters
-    generateRays(emitter, rays, NUM_RAYS / 2, bh);
-    generateRays(emitter2, rays + NUM_RAYS / 2, NUM_RAYS / 2, bh);
-
-    // Reinitialize ray physics for all rays
-    for (int i = 0; i < NUM_RAYS; i++)
-    {
-        Ray *r = &rays[i];
-        updatePolarCoordinates(r, bh);
-
-        double vx = r->direction.x * C_SPEED;
-        double vy = r->direction.y * C_SPEED;
-        double vz = r->direction.z * C_SPEED;
-
-        double sin_theta = sin(r->theta);
-        double cos_theta = cos(r->theta);
-        double sin_phi = sin(r->phi);
-        double cos_phi = cos(r->phi);
-
-        r->dr = sin_theta * cos_phi * vx + sin_theta * sin_phi * vy + cos_theta * vz;
-        r->dtheta = (cos_theta * cos_phi * vx + cos_theta * sin_phi * vy - sin_theta * vz) / r->r;
-        r->dphi = (-sin_phi * vx + cos_phi * vy) / (r->r * sin_theta);
-
-        // Calculate conserved quantities
-        double A = 1.0 - bh->schwarzschild_radius / r->r;
-        r->energy = A * (1.0 + r->dr * r->dr / A);
-        r->angular_momentum = r->r * r->r * sin_theta * sin_theta * r->dphi;
-
-        r->active = 1;
-        r->trail_length = 0;
-        r->trail_head = 0;
-    }
-
-    // Reset simulation parameters
-    time_dilation_factor = 1.0f;
-    paused = 0;
-
-    printf("Simulation reset to initial state\n");
 }
 
 extern Ray *current_rays;
