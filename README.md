@@ -66,6 +66,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Tiny Regex/Grep](./project/regex/)** — A super–small regular‑expression engine (supports `.` `*` `^` `$`) and a mini **grep** that scans stdin or files line‑by‑line.
 - **[Plinko](./project/plinko/)** — A program that simulates a Plinko board game using SDL2.
 - **[K-Means + Visualization](./project/kmeans/)** — This project implements the K-means clustering algorithm and visualizes the results.
+- **[Black Hole - 2D](./project/black_hole_ray_interaction_2D/)** — A program that traces light rays’ paths around a black hole using the geodesic equations of the Schwarzschild metric. It visually demonstrates how spacetime curvature bends ray trajectories with dynamic animations and colorful trails.
 
 ---
 
@@ -80,7 +81,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[RSA Encryption and Decryption with GMP](./project/rsa/)** — RSA implementation using C and the GMP library for handling big numbers.  
 - **[Sudoku Generator & Solver](./project/sudoku/)** — Generates a **fully‑valid Sudoku** and solves it with backtracking.
 - **[Shell](./project/shell/)** — A minimal command-line shell-like emulator written in C using the ncurses library.
-- **[Black Hole - 2D](./project/black_hole_2d/)** — A program that traces light rays’ paths around a black hole using the geodesic equations of the Schwarzschild metric. It visually demonstrates how spacetime curvature bends ray trajectories with dynamic animations and colorful trails
+- **[Black Hole - 2D](./project/black_hole_light_interaction_2D/)** — An OpenGL simulation of a black hole with a gravitational lensing effect: the scene (starfield background + a movable star) is rendered to a texture and then distorted in real time based on the mouse cursor position, representing the black hole.
 
 ---
 
