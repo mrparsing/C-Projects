@@ -5,13 +5,22 @@
 #include <math.h>
 #include <time.h>
 
+// Includi stb_image per caricare il JPG
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 800
 
 int fbWidth = WINDOW_WIDTH;
 int fbHeight = WINDOW_HEIGHT;
 
-// background shader
+// Variabile per tracciare la texture attiva (0 = generata, 1 = immagine JPG)
+int currentTexture = 0;
+unsigned int bgTexture;       // Texture generata (stelle casuali)
+unsigned int milkyWayTexture; // Texture della Via Lattea
+
+// Shader code rimane invariato
 const char *vertexShaderSource = "#version 330 core\n"
                                  "layout (location = 0) in vec2 aPos;\n"
                                  "layout (location = 1) in vec2 aTexCoord;\n"
@@ -27,19 +36,21 @@ const char *sceneFragmentShaderSource = "#version 330 core\n"
                                         "uniform sampler2D backgroundTexture;\n"
                                         "uniform vec2 starPos;\n"
                                         "uniform float starRadius;\n"
+                                        "uniform int useStar;\n" // Nuova uniforme
                                         "void main() {\n"
                                         "   FragColor = texture(backgroundTexture, TexCoord);\n"
-                                        "   vec2 dist = TexCoord - starPos;\n"
-                                        "   float d = length(dist);\n"
-                                        "   if (d < starRadius) {\n"
-                                        "       FragColor = vec4(1.0, 1.0, 0.8, 1.0);\n"
-                                        "   } else if (d < starRadius * 2.0) {\n"
-                                        "       float intensity = (starRadius * 2.0 - d) / starRadius;\n"
-                                        "       FragColor += vec4(1.0, 1.0, 0.8, 1.0) * intensity * 0.3;\n"
+                                        "   if (useStar == 1) {\n" // Controlla se disegnare la stella
+                                        "       vec2 dist = TexCoord - starPos;\n"
+                                        "       float d = length(dist);\n"
+                                        "       if (d < starRadius) {\n"
+                                        "           FragColor = vec4(1.0, 1.0, 0.8, 1.0);\n"
+                                        "       } else if (d < starRadius * 2.0) {\n"
+                                        "           float intensity = (starRadius * 2.0 - d) / starRadius;\n"
+                                        "           FragColor += vec4(1.0, 1.0, 0.8, 1.0) * intensity * 0.3;\n"
+                                        "       }\n"
                                         "   }\n"
                                         "}\n";
 
-// gravitational lens
 const char *distortionFragmentShaderSource = "#version 330 core\n"
                                              "in vec2 TexCoord;\n"
                                              "out vec4 FragColor;\n"
@@ -50,20 +61,47 @@ const char *distortionFragmentShaderSource = "#version 330 core\n"
                                              "   vec2 pos = TexCoord - blackHolePos;\n"
                                              "   float r = length(pos);\n"
                                              "   float rs = schwarzschildRadius;\n"
-                                             "   if (r < rs) {\n"                             // Schwarzschild
-                                             "       FragColor = vec4(0.0, 0.0, 0.0, 1.0);\n" // center
-                                             "   } else if (r < rs * 1.5) {\n"                // ring
+                                             "   if (r < rs) {\n"
+                                             "       FragColor = vec4(0.0, 0.0, 0.0, 1.0);\n"
+                                             "   } else if (r < rs * 1.5) {\n"
                                              "       float intensity = 1.0 - (r - rs) / (0.5 * rs);\n"
                                              "       FragColor = vec4(1.0, 0.8, 0.4, 1.0) * intensity;\n"
                                              "   } else {\n"
-                                             "       float deflection = rs / (r * r); // Approssimazione della deflessione gravitazionale\n"
+                                             "       float deflection = rs / (r * r);\n"
                                              "       vec2 distortedCoord = TexCoord - deflection * pos;\n"
                                              "       distortedCoord = clamp(distortedCoord, 0.0, 1.0);\n"
                                              "       FragColor = texture(sceneTexture, distortedCoord);\n"
                                              "   }\n"
                                              "}\n";
 
+// Funzione per caricare la texture JPG della Via Lattea
+unsigned int loadMilkyWayTexture(const char *filename)
+{
+    int width, height, channels;
+    unsigned char *data = stbi_load(filename, &width, &height, &channels, 0);
+    if (!data)
+    {
+        printf("Errore nel caricamento dell'immagine: %s\n", filename);
+        return 0;
+    }
 
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    // Determina il formato in base al numero di canali
+    GLenum format = (channels == 3) ? GL_RGB : GL_RGBA;
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    stbi_image_free(data);
+    return texture;
+}
+
+// Funzione per creare la texture di sfondo generata (come nel codice originale)
 unsigned int createBackgroundTexture()
 {
     int width = 512, height = 512;
@@ -75,10 +113,9 @@ unsigned int createBackgroundTexture()
             int index = (y * width + x) * 3;
             data[index] = 0;
             data[index + 1] = 0;
-            data[index + 2] = 0; // black
+            data[index + 2] = 0; // nero
         }
     }
-    // random star
     srand((unsigned int)time(NULL));
     int numStars = 200;
     for (int i = 0; i < numStars; i++)
@@ -88,7 +125,7 @@ unsigned int createBackgroundTexture()
         int index = (y * width + x) * 3;
         data[index] = 255;
         data[index + 1] = 255;
-        data[index + 2] = 255; // white
+        data[index + 2] = 255; // bianco
         if (rand() % 5 == 0)
         {
             if (x + 1 < width)
@@ -131,7 +168,7 @@ unsigned int compileShader(const char *source, GLenum type)
     {
         char infoLog[512];
         glGetShaderInfoLog(shader, 512, NULL, infoLog);
-        printf("Shader compilation error: %s\n", infoLog);
+        printf("Errore compilazione shader: %s\n", infoLog);
     }
     return shader;
 }
@@ -150,7 +187,7 @@ unsigned int createShaderProgram(const char *fragmentSource)
     {
         char infoLog[512];
         glGetProgramInfoLog(program, 512, NULL, infoLog);
-        printf("Linking error: %s\n", infoLog);
+        printf("Errore linking: %s\n", infoLog);
     }
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
@@ -179,7 +216,7 @@ int main()
     GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Black Hole simulation", NULL, NULL);
     if (!window)
     {
-        printf("Error window\n");
+        printf("Errore creazione finestra\n");
         glfwTerminate();
         return -1;
     }
@@ -191,7 +228,7 @@ int main()
 
     if (glewInit() != GLEW_OK)
     {
-        printf("Error GLEW\n");
+        printf("Errore inizializzazione GLEW\n");
         glfwTerminate();
         return -1;
     }
@@ -224,7 +261,9 @@ int main()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    unsigned int bgTexture = createBackgroundTexture();
+    // Carica entrambe le texture
+    bgTexture = createBackgroundTexture();
+    milkyWayTexture = loadMilkyWayTexture("milky_way.jpg");
 
     unsigned int sceneShaderProgram = createShaderProgram(sceneFragmentShaderSource);
     unsigned int distortionShaderProgram = createShaderProgram(distortionFragmentShaderSource);
@@ -245,23 +284,37 @@ int main()
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
-        printf("Error: Framebuffer!\n");
+        printf("Errore: Framebuffer non completo!\n");
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     int sceneStarPosLoc = glGetUniformLocation(sceneShaderProgram, "starPos");
     int sceneStarRadiusLoc = glGetUniformLocation(sceneShaderProgram, "starRadius");
+    int useStarLoc = glGetUniformLocation(sceneShaderProgram, "useStar"); // Nuova uniforme
 
     int blackHolePosLoc = glGetUniformLocation(distortionShaderProgram, "blackHolePos");
     int schwarzschildRadiusLoc = glGetUniformLocation(distortionShaderProgram, "schwarzschildRadius");
 
     float star_x = 0.2f;
     float star_y = 0.1f;
-    float star_radius = 0.03f; // big star radius
+    float star_radius = 0.03f;
     float move_speed = 0.005f;
+
+    // Variabile per gestire il toggle del tasto
+    int togglePressed = 0;
 
     while (!glfwWindowShouldClose(window))
     {
+        if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS && !togglePressed)
+        {
+            currentTexture = (currentTexture + 1) % 2;
+            togglePressed = 1;
+        }
+        if (glfwGetKey(window, GLFW_KEY_T) == GLFW_RELEASE)
+        {
+            togglePressed = 0;
+        }
+
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
             star_y += move_speed;
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -291,15 +344,14 @@ int main()
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         glViewport(0, 0, fbWidth, fbHeight);
 
-
         glUseProgram(sceneShaderProgram);
         glUniform2f(sceneStarPosLoc, star_x, star_y);
         glUniform1f(sceneStarRadiusLoc, star_radius);
+        glUniform1i(useStarLoc, currentTexture == 0 ? 1 : 0); // Stella visibile solo con texture generata
 
-        glBindTexture(GL_TEXTURE_2D, bgTexture);
+        glBindTexture(GL_TEXTURE_2D, currentTexture == 0 ? bgTexture : milkyWayTexture);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, fbWidth, fbHeight);
@@ -324,6 +376,7 @@ int main()
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
     glDeleteTextures(1, &bgTexture);
+    glDeleteTextures(1, &milkyWayTexture);
     glDeleteTextures(1, &fboTexture);
     glDeleteFramebuffers(1, &fbo);
     glDeleteProgram(sceneShaderProgram);
