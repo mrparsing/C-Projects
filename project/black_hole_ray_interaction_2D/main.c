@@ -2,61 +2,68 @@
 #include <GLFW/glfw3.h>
 #include <stdio.h>
 #include <math.h>
+#include <stdlib.h>
 
-#define C_SPEED 30.0
-#define NUM_RAYS 100
-#define TIME_STEP 0.05
-#define MAX_TRAIL_POINTS 1000
+#define NUM_PHOTONS 100
+#define TIME_STEP 0.3
+#define MAX_TRAIL_POINTS 1500
+#define STEPS_PER_FRAME 5
+#define PHOTON_SPHERE_FACTOR 1.5
+#define EVENT_HORIZON_FACTOR 1.0
 
-typedef struct
-{
+typedef struct {
     double x, y, z;
 } Vector3;
 
-typedef struct
-{
+typedef struct {
     Vector3 position;
-    double schwarzschild_radius;
+    double mass;
+    double rs;             // Schwarzschild radius
 } BlackHole;
 
-typedef struct
-{
+typedef struct {
+    double t, r, theta, phi;
+    double dt_dtau, dr_dtau, dtheta_dtau, dphi_dtau;
+    double energy;
+    double angular_momentum;
     double x, y;
-    double r, phi;
-    double dr, dphi;
-    Vector3 direction;
+    
     Vector3 trail[MAX_TRAIL_POINTS];
     int trail_head;
     int trail_length;
-} Ray;
+    
+    int active;
+    int escaped;
+    int captured;
+} Photon;
 
-typedef struct
-{
-    Ray ray[NUM_RAYS];
-} ArrayRay;
+typedef struct {
+    Photon photons[NUM_PHOTONS];
+    int num_active;
+} PhotonArray;
 
-typedef struct
-{
-    double r, phi;
-    double dr, dphi;
-} State;
+void initializeBlackHole(BlackHole *bh, double mass, double center_x, double center_y);
+void initializePhoton(Photon *photon, double x0, double y0, double vx, double vy, const BlackHole *bh);
+void computeConservedQuantities(Photon *photon, const BlackHole *bh);
+void geodesicDerivatives(const Photon *photon, const BlackHole *bh, 
+                        double *dt_dtau_dot, double *dr_dtau_dot, 
+                        double *dtheta_dtau_dot, double *dphi_dtau_dot);
+void rungeKutta4Step(Photon *photon, const BlackHole *bh, double h);
+void updateCartesianCoordinates(Photon *photon, const BlackHole *bh);
+void addToTrail(Photon *photon);
+int checkPhotonStatus(Photon *photon, const BlackHole *bh);
 
-void updatePolarCoordinates(Ray *ray, const BlackHole *bh);
-void derivatives(const State *s, double rs, State *ds);
-void rk4_step(State *s, double h, double rs);
 void drawBlackHole(const BlackHole *bh);
-void drawRay(const Ray *ray);
-void drawTrail(const Ray *ray);
+void drawPhoton(const Photon *photon);
+void drawPhotonTrail(const Photon *photon);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
-int main(void)
-{
+int main(void) {
     if (!glfwInit())
         return -1;
 
-    GLFWwindow *window = glfwCreateWindow(800, 600, "Black Hole", NULL, NULL);
-    if (!window)
-    {
+    GLFWwindow *window = glfwCreateWindow(1200, 900, "Black hole - rays", NULL, NULL);
+    if (!window) {
         glfwTerminate();
         return -1;
     }
@@ -71,88 +78,80 @@ int main(void)
     glViewport(0, 0, width, height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, width, height, 0, -1, 1);
+    glOrtho(-width/2, width/2, -height/2, height/2, -1, 1);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    BlackHole blackhole = {
-        .position = {width / 2.0, height / 2.0, 0.0},
-        .schwarzschild_radius = 30.0};
+    BlackHole blackhole;
+    initializeBlackHole(&blackhole, 1.0, 0.0, 0.0);
+    
+    double scale = 30.0;
+    blackhole.rs *= scale;
+    blackhole.mass *= scale;
 
-    ArrayRay rays;
-    for (int i = 0; i < NUM_RAYS; i++)
-    {
-        Ray *r = &rays.ray[i];
-        r->x = 50.0;
-        r->y = i * 12.0;
+    PhotonArray photons;
+    photons.num_active = NUM_PHOTONS;
 
-        r->trail_head = 0;
-        r->trail_length = 0;
-        for (int j = 0; j < MAX_TRAIL_POINTS; j++)
-        {
-            r->trail[j] = (Vector3){r->x, r->y, 0.0};
-        }
-
-        r->direction = (Vector3){1.0, 0.0, 0.0};
-        updatePolarCoordinates(r, &blackhole);
-
-        double vx = r->direction.x * C_SPEED;
-        double vy = r->direction.y * C_SPEED;
-        double dx = r->x - blackhole.position.x;
-        double dy = r->y - blackhole.position.y;
-
-        r->dr = (dx * vx + dy * vy) / r->r;
-        r->dphi = (dx * vy - dy * vx) / (r->r * r->r);
+    for (int i = 0; i < NUM_PHOTONS; i++) {
+        double y_start = -250.0 + (i * 500.0) / (NUM_PHOTONS - 1);
+        double x_start = -350.0;
+        double vx = 1.0;
+        double vy = 0.0;
+        
+        initializePhoton(&photons.photons[i], x_start, y_start, vx, vy, &blackhole);
     }
 
-    while (!glfwWindowShouldClose(window))
-    {
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    printf("Black hole mass: %.2f, Schwarzschild radius: %.2f\n", 
+           blackhole.mass/scale, blackhole.rs/scale);
+    printf("Photon sphere radius: %.2f\n", blackhole.rs * PHOTON_SPHERE_FACTOR/scale);
+
+    while (!glfwWindowShouldClose(window)) {
+        glClearColor(0.05f, 0.05f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, GLFW_TRUE);
 
+        if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+            for (int i = 0; i < NUM_PHOTONS; i++) {
+                double y_start = -250.0 + (i * 500.0) / (NUM_PHOTONS - 1);
+                double x_start = -350.0;
+                initializePhoton(&photons.photons[i], x_start, y_start, 1.0, 0.0, &blackhole);
+            }
+            photons.num_active = NUM_PHOTONS;
+        }
+
         drawBlackHole(&blackhole);
 
-        for (int i = 0; i < NUM_RAYS; i++)
-        {
-            Ray *r = &rays.ray[i];
-
-            r->trail[r->trail_head] = (Vector3){r->x, r->y, 0.0};
-            r->trail_head = (r->trail_head + 1) % MAX_TRAIL_POINTS;
-            if (r->trail_length < MAX_TRAIL_POINTS)
-                r->trail_length++;
-
-            // if the ray is too close to the black hole, do not update it but continue drawing the trail
-            if (r->r > blackhole.schwarzschild_radius * 1.5)
-            {
-                State s = {r->r, r->phi, r->dr, r->dphi};
-                rk4_step(&s, TIME_STEP, blackhole.schwarzschild_radius);
-
-                r->r = s.r;
-                r->phi = s.phi;
-                r->dr = s.dr;
-                r->dphi = s.dphi;
-
-                r->x = blackhole.position.x + r->r * cos(r->phi);
-                r->y = blackhole.position.y + r->r * sin(r->phi);
-
-                double vr = r->dr;
-                double vphi = r->dphi;
-                r->direction.x = vr * cos(r->phi) - r->r * vphi * sin(r->phi);
-                r->direction.y = vr * sin(r->phi) + r->r * vphi * cos(r->phi);
-
-                double len = hypot(r->direction.x, r->direction.y);
-                if (len > 0)
-                {
-                    r->direction.x /= len;
-                    r->direction.y /= len;
+        photons.num_active = 0;
+        for (int i = 0; i < NUM_PHOTONS; i++) {
+            Photon *p = &photons.photons[i];
+            
+            if (p->active) {
+                for (int step = 0; step < STEPS_PER_FRAME; step++) {
+                    if (p->active) {
+                        rungeKutta4Step(p, &blackhole, TIME_STEP);
+                        updateCartesianCoordinates(p, &blackhole);
+                        
+                        if (step % 2 == 0) {
+                            addToTrail(p);
+                        }
+                        
+                        if (!checkPhotonStatus(p, &blackhole)) {
+                            break;
+                        }
+                    }
+                }
+                
+                if (p->active) {
+                    photons.num_active++;
                 }
             }
-            drawTrail(r);
-            if (r->r > blackhole.schwarzschild_radius * 1.5)
-                drawRay(r);
+            
+            drawPhotonTrail(p);
+            if (p->active) {
+                drawPhoton(p);
+            }
         }
 
         glfwSwapBuffers(window);
@@ -164,149 +163,312 @@ int main(void)
     return 0;
 }
 
-void updatePolarCoordinates(Ray *ray, const BlackHole *bh)
-{
-    double dx = ray->x - bh->position.x;
-    double dy = ray->y - bh->position.y;
-    ray->r = hypot(dx, dy);
-    ray->phi = atan2(dy, dx);
+void initializeBlackHole(BlackHole *bh, double mass, double center_x, double center_y) {
+    bh->mass = mass;
+    bh->rs = 2.0 * mass;  // Schwarzschild radius in geometric units
+    bh->position.x = center_x;
+    bh->position.y = center_y;
+    bh->position.z = 0.0;
 }
 
-void derivatives(const State *s, double rs, State *ds)
-{
-    double r = s->r;
+void initializePhoton(Photon *photon, double x0, double y0, double vx, double vy, const BlackHole *bh) {
+    double dx = x0 - bh->position.x;
+    double dy = y0 - bh->position.y;
+    
+    photon->r = sqrt(dx*dx + dy*dy);
+    photon->phi = atan2(dy, dx);
+    photon->theta = M_PI/2.0;  // equatorial plane
+    photon->t = 0.0;
+    
+    photon->x = x0;
+    photon->y = y0;
+    
+    double v_mag = sqrt(vx*vx + vy*vy);
+    if (v_mag > 0) {
+        vx /= v_mag;
+        vy /= v_mag;
+    }
+    
+    double r = photon->r;
+    double cos_phi = cos(photon->phi);
+    double sin_phi = sin(photon->phi);
+    
+    double vr = vx * cos_phi + vy * sin_phi;
+    double vphi = (-vx * sin_phi + vy * cos_phi) / r;
+    
+    double f = 1.0 - bh->rs/r;
+    
+    photon->energy = sqrt(f + vr*vr/f + r*r*vphi*vphi);
+    
+    photon->dt_dtau = photon->energy / f;
+    photon->dr_dtau = vr;
+    photon->dtheta_dtau = 0.0;
+    photon->dphi_dtau = vphi;
+    
+    computeConservedQuantities(photon, bh);
+    
+    photon->trail_head = 0;
+    photon->trail_length = 0;
+    for (int i = 0; i < MAX_TRAIL_POINTS; i++) {
+        photon->trail[i] = (Vector3){x0, y0, 0.0};
+    }
+    
+    photon->active = 1;
+    photon->escaped = 0;
+    photon->captured = 0;
+}
 
-    if (r < rs * 1.1)
-    {
-        *ds = (State){0, 0, 0, 0};
+void computeConservedQuantities(Photon *photon, const BlackHole *bh) {
+    double r = photon->r;
+    double f = 1.0 - bh->rs/r;
+    
+    photon->energy = f * photon->dt_dtau;
+    photon->angular_momentum = r * r * photon->dphi_dtau;
+}
+
+void geodesicDerivatives(const Photon *photon, const BlackHole *bh,
+                        double *dt_dtau_dot, double *dr_dtau_dot, 
+                        double *dtheta_dtau_dot, double *dphi_dtau_dot) {
+    
+    double r = photon->r;
+    double rs = bh->rs;
+    
+    if (r <= rs * 1.001) {
+        *dt_dtau_dot = 0.0;
+        *dr_dtau_dot = 0.0;
+        *dtheta_dtau_dot = 0.0;
+        *dphi_dtau_dot = 0.0;
         return;
     }
-
-    double A = 1.0 - rs / r;
-    double dA_dr = rs / (r * r);
-
-    ds->r = s->dr;
-    ds->phi = s->dphi;
-    ds->dr = r * A * pow(s->dphi, 2) - (dA_dr / (2 * A)) * pow(s->dr, 2) - (C_SPEED * C_SPEED * dA_dr) / (2 * A);
-    ds->dphi = -2.0 * s->dr * s->dphi / r;
+    
+    double f = 1.0 - rs/r;
+    double dt_dtau = photon->dt_dtau;
+    double dr_dtau = photon->dr_dtau;
+    double dphi_dtau = photon->dphi_dtau;
+    
+    // Christoffel symbols for Schwarzschild metric
+    double Gamma_t_tr = rs / (2.0 * r * r * f);
+    double Gamma_r_tt = rs * f / (2.0 * r * r);
+    double Gamma_r_rr = -rs / (2.0 * r * r * f);
+    double Gamma_r_phiphi = -(r - rs);
+    double Gamma_phi_rphi = 1.0 / r;
+    
+    // Geodesic equations: d²x^μ/dτ² + Γ^μ_νρ (dx^ν/dτ)(dx^ρ/dτ) = 0
+    
+    *dt_dtau_dot = -2.0 * Gamma_t_tr * dt_dtau * dr_dtau;
+    
+    *dr_dtau_dot = -Gamma_r_tt * dt_dtau * dt_dtau 
+                   - Gamma_r_rr * dr_dtau * dr_dtau
+                   - Gamma_r_phiphi * dphi_dtau * dphi_dtau;
+    
+    *dtheta_dtau_dot = 0.0;  // Motion confined to equatorial plane
+    
+    *dphi_dtau_dot = -2.0 * Gamma_phi_rphi * dr_dtau * dphi_dtau;
 }
 
-void rk4_step(State *s, double h, double rs)
-{
-    State k1, k2, k3, k4, temp;
-
-    derivatives(s, rs, &k1);
-
-    temp.r = s->r + 0.5 * h * k1.r;
-    temp.phi = s->phi + 0.5 * h * k1.phi;
-    temp.dr = s->dr + 0.5 * h * k1.dr;
-    temp.dphi = s->dphi + 0.5 * h * k1.dphi;
-    derivatives(&temp, rs, &k2);
-
-    temp.r = s->r + 0.5 * h * k2.r;
-    temp.phi = s->phi + 0.5 * h * k2.phi;
-    temp.dr = s->dr + 0.5 * h * k2.dr;
-    temp.dphi = s->dphi + 0.5 * h * k2.dphi;
-    derivatives(&temp, rs, &k3);
-
-    temp.r = s->r + h * k3.r;
-    temp.phi = s->phi + h * k3.phi;
-    temp.dr = s->dr + h * k3.dr;
-    temp.dphi = s->dphi + h * k3.dphi;
-    derivatives(&temp, rs, &k4);
-
-    s->r += h * (k1.r + 2 * k2.r + 2 * k3.r + k4.r) / 6.0;
-    s->phi += h * (k1.phi + 2 * k2.phi + 2 * k3.phi + k4.phi) / 6.0;
-    s->dr += h * (k1.dr + 2 * k2.dr + 2 * k3.dr + k4.dr) / 6.0;
-    s->dphi += h * (k1.dphi + 2 * k2.dphi + 2 * k3.dphi + k4.dphi) / 6.0;
+void rungeKutta4Step(Photon *photon, const BlackHole *bh, double h) {
+    double t0 = photon->t;
+    double r0 = photon->r;
+    double theta0 = photon->theta;
+    double phi0 = photon->phi;
+    double dt_dtau0 = photon->dt_dtau;
+    double dr_dtau0 = photon->dr_dtau;
+    double dtheta_dtau0 = photon->dtheta_dtau;
+    double dphi_dtau0 = photon->dphi_dtau;
+    
+    // k1
+    double k1_t = dt_dtau0;
+    double k1_r = dr_dtau0;
+    double k1_theta = dtheta_dtau0;
+    double k1_phi = dphi_dtau0;
+    double k1_dt_dtau, k1_dr_dtau, k1_dtheta_dtau, k1_dphi_dtau;
+    
+    geodesicDerivatives(photon, bh, &k1_dt_dtau, &k1_dr_dtau, &k1_dtheta_dtau, &k1_dphi_dtau);
+    
+    // k2
+    Photon temp = *photon;
+    temp.t = t0 + 0.5 * h * k1_t;
+    temp.r = r0 + 0.5 * h * k1_r;
+    temp.theta = theta0 + 0.5 * h * k1_theta;
+    temp.phi = phi0 + 0.5 * h * k1_phi;
+    temp.dt_dtau = dt_dtau0 + 0.5 * h * k1_dt_dtau;
+    temp.dr_dtau = dr_dtau0 + 0.5 * h * k1_dr_dtau;
+    temp.dtheta_dtau = dtheta_dtau0 + 0.5 * h * k1_dtheta_dtau;
+    temp.dphi_dtau = dphi_dtau0 + 0.5 * h * k1_dphi_dtau;
+    
+    double k2_t = temp.dt_dtau;
+    double k2_r = temp.dr_dtau;
+    double k2_theta = temp.dtheta_dtau;
+    double k2_phi = temp.dphi_dtau;
+    double k2_dt_dtau, k2_dr_dtau, k2_dtheta_dtau, k2_dphi_dtau;
+    
+    geodesicDerivatives(&temp, bh, &k2_dt_dtau, &k2_dr_dtau, &k2_dtheta_dtau, &k2_dphi_dtau);
+    
+    // k3
+    temp.t = t0 + 0.5 * h * k2_t;
+    temp.r = r0 + 0.5 * h * k2_r;
+    temp.theta = theta0 + 0.5 * h * k2_theta;
+    temp.phi = phi0 + 0.5 * h * k2_phi;
+    temp.dt_dtau = dt_dtau0 + 0.5 * h * k2_dt_dtau;
+    temp.dr_dtau = dr_dtau0 + 0.5 * h * k2_dr_dtau;
+    temp.dtheta_dtau = dtheta_dtau0 + 0.5 * h * k2_dtheta_dtau;
+    temp.dphi_dtau = dphi_dtau0 + 0.5 * h * k2_dphi_dtau;
+    
+    double k3_t = temp.dt_dtau;
+    double k3_r = temp.dr_dtau;
+    double k3_theta = temp.dtheta_dtau;
+    double k3_phi = temp.dphi_dtau;
+    double k3_dt_dtau, k3_dr_dtau, k3_dtheta_dtau, k3_dphi_dtau;
+    
+    geodesicDerivatives(&temp, bh, &k3_dt_dtau, &k3_dr_dtau, &k3_dtheta_dtau, &k3_dphi_dtau);
+    
+    // k4
+    temp.t = t0 + h * k3_t;
+    temp.r = r0 + h * k3_r;
+    temp.theta = theta0 + h * k3_theta;
+    temp.phi = phi0 + h * k3_phi;
+    temp.dt_dtau = dt_dtau0 + h * k3_dt_dtau;
+    temp.dr_dtau = dr_dtau0 + h * k3_dr_dtau;
+    temp.dtheta_dtau = dtheta_dtau0 + h * k3_dtheta_dtau;
+    temp.dphi_dtau = dphi_dtau0 + h * k3_dphi_dtau;
+    
+    double k4_t = temp.dt_dtau;
+    double k4_r = temp.dr_dtau;
+    double k4_theta = temp.dtheta_dtau;
+    double k4_phi = temp.dphi_dtau;
+    double k4_dt_dtau, k4_dr_dtau, k4_dtheta_dtau, k4_dphi_dtau;
+    
+    geodesicDerivatives(&temp, bh, &k4_dt_dtau, &k4_dr_dtau, &k4_dtheta_dtau, &k4_dphi_dtau);
+    
+    photon->t += h * (k1_t + 2*k2_t + 2*k3_t + k4_t) / 6.0;
+    photon->r += h * (k1_r + 2*k2_r + 2*k3_r + k4_r) / 6.0;
+    photon->theta += h * (k1_theta + 2*k2_theta + 2*k3_theta + k4_theta) / 6.0;
+    photon->phi += h * (k1_phi + 2*k2_phi + 2*k3_phi + k4_phi) / 6.0;
+    photon->dt_dtau += h * (k1_dt_dtau + 2*k2_dt_dtau + 2*k3_dt_dtau + k4_dt_dtau) / 6.0;
+    photon->dr_dtau += h * (k1_dr_dtau + 2*k2_dr_dtau + 2*k3_dr_dtau + k4_dr_dtau) / 6.0;
+    photon->dtheta_dtau += h * (k1_dtheta_dtau + 2*k2_dtheta_dtau + 2*k3_dtheta_dtau + k4_dtheta_dtau) / 6.0;
+    photon->dphi_dtau += h * (k1_dphi_dtau + 2*k2_dphi_dtau + 2*k3_dphi_dtau + k4_dphi_dtau) / 6.0;
 }
 
-void drawBlackHole(const BlackHole *bh)
-{
-    // accretion disk
+void updateCartesianCoordinates(Photon *photon, const BlackHole *bh) {
+    photon->x = bh->position.x + photon->r * cos(photon->phi);
+    photon->y = bh->position.y + photon->r * sin(photon->phi);
+}
+
+void addToTrail(Photon *photon) {
+    photon->trail[photon->trail_head] = (Vector3){photon->x, photon->y, 0.0};
+    photon->trail_head = (photon->trail_head + 1) % MAX_TRAIL_POINTS;
+    if (photon->trail_length < MAX_TRAIL_POINTS) {
+        photon->trail_length++;
+    }
+}
+
+int checkPhotonStatus(Photon *photon, const BlackHole *bh) {
+    if (photon->r <= bh->rs * 1.01) {
+        photon->active = 0;
+        photon->captured = 1;
+        return 0;
+    }
+    
+    if (photon->r > bh->rs * 50.0) {
+        photon->active = 0;
+        photon->escaped = 1;
+        return 0;
+    }
+    
+    return 1;
+}
+
+void drawBlackHole(const BlackHole *bh) {
+    double rs = bh->rs;
+    
     glBegin(GL_TRIANGLE_STRIP);
-    for (int i = 0; i <= 100; i++)
-    {
+    for (int i = 0; i <= 100; i++) {
         float angle = 2.0f * M_PI * i / 100;
         float x = cos(angle);
         float y = sin(angle);
-
-        // Inner disk (closer to event horizon)
-        glColor4f(1.0, 0.5, 0.0, 0.7); // orange
-        glVertex2f(
-            bh->position.x + x * bh->schwarzschild_radius * 1.5,
-            bh->position.y + y * bh->schwarzschild_radius * 1.5);
-
-        // Outer disk
-        glColor4f(0.5, 0.2, 0.8, 0.4); // purple
-        glVertex2f(
-            bh->position.x + x * bh->schwarzschild_radius * 3.0,
-            bh->position.y + y * bh->schwarzschild_radius * 3.0);
+        
+        float temp_inner = 1.0f;
+        glColor4f(temp_inner, temp_inner * 0.7f, temp_inner * 0.3f, 0.8f);
+        glVertex2f(bh->position.x + x * rs * 3.0f, bh->position.y + y * rs * 3.0f);
+        
+        float temp_outer = 0.3f;
+        glColor4f(temp_outer, temp_outer * 0.8f, temp_outer * 1.2f, 0.4f);
+        glVertex2f(bh->position.x + x * rs * 6.0f, bh->position.y + y * rs * 6.0f);
     }
     glEnd();
-
-    // Draw event horizon (black circle)
-    glColor3f(0.0, 0.0, 0.0);
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex2f(bh->position.x, bh->position.y);
-    for (int i = 0; i <= 100; i++)
-    {
-        float angle = 2.0f * M_PI * i / 100;
-        glVertex2f(
-            bh->position.x + cos(angle) * bh->schwarzschild_radius,
-            bh->position.y + sin(angle) * bh->schwarzschild_radius);
-    }
-    glEnd();
-
-    // Draw photon sphere (dashed line)
-    glColor3f(0.5, 0.5, 1.0);
-    glLineStipple(1, 0x00FF); // dashed pattern
+    
+    glColor4f(0.7f, 0.7f, 1.0f, 0.6f);
+    glLineStipple(2, 0x5555);
     glEnable(GL_LINE_STIPPLE);
+    glLineWidth(2.0f);
     glBegin(GL_LINE_LOOP);
-    for (int i = 0; i < 100; i++)
-    {
+    for (int i = 0; i < 100; i++) {
         float angle = 2.0f * M_PI * i / 100;
-        glVertex2f(
-            bh->position.x + cos(angle) * bh->schwarzschild_radius * 1.5,
-            bh->position.y + sin(angle) * bh->schwarzschild_radius * 1.5);
+        glVertex2f(bh->position.x + cos(angle) * rs * PHOTON_SPHERE_FACTOR,
+                  bh->position.y + sin(angle) * rs * PHOTON_SPHERE_FACTOR);
     }
     glEnd();
     glDisable(GL_LINE_STIPPLE);
-}
-
-void drawRay(const Ray *ray)
-{
-    double length = 20.0;
-    glColor3f(1.0f, 1.0f, 0.0f);
-    glLineWidth(3.0f); 
-    glBegin(GL_LINES);
-    glVertex2f(ray->x, ray->y);
-    glVertex2f(ray->x + ray->direction.x * length, ray->y + ray->direction.y * length);
+    
+    glColor3f(0.0f, 0.0f, 0.0f);
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2f(bh->position.x, bh->position.y);
+    for (int i = 0; i <= 100; i++) {
+        float angle = 2.0f * M_PI * i / 100;
+        glVertex2f(bh->position.x + cos(angle) * rs,
+                  bh->position.y + sin(angle) * rs);
+    }
     glEnd();
-}
-
-void drawTrail(const Ray *ray)
-{
-    if (ray->trail_length < 2)
-        return;
-
-    glBegin(GL_LINE_STRIP);
-    for (int i = 0; i < ray->trail_length; i++)
-    {
-        int idx = (ray->trail_head - ray->trail_length + i + MAX_TRAIL_POINTS) % MAX_TRAIL_POINTS;
-
-        float alpha = (float)i / ray->trail_length;
-        glColor4f(1.0, 1.0, 0.0, alpha * 0.7);
-
-        glVertex2f(ray->trail[idx].x, ray->trail[idx].y);
+    
+    glColor3f(1.0f, 0.0f, 0.0f);
+    glLineWidth(3.0f);
+    glBegin(GL_LINE_LOOP);
+    for (int i = 0; i < 100; i++) {
+        float angle = 2.0f * M_PI * i / 100;
+        glVertex2f(bh->position.x + cos(angle) * rs,
+                  bh->position.y + sin(angle) * rs);
     }
     glEnd();
 }
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height)
-{
+void drawPhoton(const Photon *photon) {
+    glColor3f(1.0f, 1.0f, 0.0f);
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2f(photon->x, photon->y);
+    for (int i = 0; i <= 8; i++) {
+        float angle = 2.0f * M_PI * i / 8;
+        glVertex2f(photon->x + cos(angle) * 3.0f, photon->y + sin(angle) * 3.0f);
+    }
+    glEnd();
+}
+
+void drawPhotonTrail(const Photon *photon) {
+    if (photon->trail_length < 2) return;
+    
+    glBegin(GL_LINE_STRIP);
+    for (int i = 0; i < photon->trail_length; i++) {
+        int idx = (photon->trail_head - photon->trail_length + i + MAX_TRAIL_POINTS) % MAX_TRAIL_POINTS;
+        float alpha = (float)i / photon->trail_length;
+        
+        if (photon->captured) {
+            glColor4f(1.0f, 0.2f, 0.2f, alpha * 0.8f);  // Red for captured photons
+        } else if (photon->escaped) {
+            glColor4f(0.2f, 1.0f, 0.2f, alpha * 0.8f);  // Green for escaped photons
+        } else {
+            glColor4f(1.0f, 1.0f, 0.0f, alpha * 0.8f);  // Yellow for active photons
+        }
+        
+        glVertex2f(photon->trail[idx].x, photon->trail[idx].y);
+    }
+    glEnd();
+}
+
+void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0, width, height, 0, -1, 1);
+    glOrtho(-width/2, width/2, -height/2, height/2, -1, 1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 }
