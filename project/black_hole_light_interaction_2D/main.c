@@ -5,7 +5,6 @@
 #include <math.h>
 #include <time.h>
 
-// Includi stb_image per caricare il JPG
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -15,12 +14,10 @@
 int fbWidth = WINDOW_WIDTH;
 int fbHeight = WINDOW_HEIGHT;
 
-// Variabile per tracciare la texture attiva (0 = generata, 1 = immagine JPG)
 int currentTexture = 0;
-unsigned int bgTexture;       // Texture generata (stelle casuali)
-unsigned int milkyWayTexture; // Texture della Via Lattea
+unsigned int bgTexture;
+unsigned int milkyWayTexture;
 
-// Shader code rimane invariato
 const char *vertexShaderSource = "#version 330 core\n"
                                  "layout (location = 0) in vec2 aPos;\n"
                                  "layout (location = 1) in vec2 aTexCoord;\n"
@@ -36,10 +33,10 @@ const char *sceneFragmentShaderSource = "#version 330 core\n"
                                         "uniform sampler2D backgroundTexture;\n"
                                         "uniform vec2 starPos;\n"
                                         "uniform float starRadius;\n"
-                                        "uniform int useStar;\n" // Nuova uniforme
+                                        "uniform int useStar;\n"
                                         "void main() {\n"
                                         "   FragColor = texture(backgroundTexture, TexCoord);\n"
-                                        "   if (useStar == 1) {\n" // Controlla se disegnare la stella
+                                        "   if (useStar == 1) {\n"
                                         "       vec2 dist = TexCoord - starPos;\n"
                                         "       float d = length(dist);\n"
                                         "       if (d < starRadius) {\n"
@@ -74,14 +71,14 @@ const char *distortionFragmentShaderSource = "#version 330 core\n"
                                              "   }\n"
                                              "}\n";
 
-// Funzione per caricare la texture JPG della Via Lattea
+
 unsigned int loadMilkyWayTexture(const char *filename)
 {
     int width, height, channels;
     unsigned char *data = stbi_load(filename, &width, &height, &channels, 0);
     if (!data)
     {
-        printf("Errore nel caricamento dell'immagine: %s\n", filename);
+        printf("Faild to upload image: %s\n", filename);
         return 0;
     }
 
@@ -89,7 +86,6 @@ unsigned int loadMilkyWayTexture(const char *filename)
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 
-    // Determina il formato in base al numero di canali
     GLenum format = (channels == 3) ? GL_RGB : GL_RGBA;
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -101,7 +97,6 @@ unsigned int loadMilkyWayTexture(const char *filename)
     return texture;
 }
 
-// Funzione per creare la texture di sfondo generata (come nel codice originale)
 unsigned int createBackgroundTexture()
 {
     int width = 512, height = 512;
@@ -113,7 +108,7 @@ unsigned int createBackgroundTexture()
             int index = (y * width + x) * 3;
             data[index] = 0;
             data[index + 1] = 0;
-            data[index + 2] = 0; // nero
+            data[index + 2] = 0;
         }
     }
     srand((unsigned int)time(NULL));
@@ -125,7 +120,7 @@ unsigned int createBackgroundTexture()
         int index = (y * width + x) * 3;
         data[index] = 255;
         data[index + 1] = 255;
-        data[index + 2] = 255; // bianco
+        data[index + 2] = 255;
         if (rand() % 5 == 0)
         {
             if (x + 1 < width)
@@ -168,7 +163,7 @@ unsigned int compileShader(const char *source, GLenum type)
     {
         char infoLog[512];
         glGetShaderInfoLog(shader, 512, NULL, infoLog);
-        printf("Errore compilazione shader: %s\n", infoLog);
+        printf("Shader compilation error: %s\n", infoLog);
     }
     return shader;
 }
@@ -216,7 +211,7 @@ int main()
     GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Black Hole simulation", NULL, NULL);
     if (!window)
     {
-        printf("Errore creazione finestra\n");
+        printf("Failed to create window\n");
         glfwTerminate();
         return -1;
     }
@@ -228,7 +223,7 @@ int main()
 
     if (glewInit() != GLEW_OK)
     {
-        printf("Errore inizializzazione GLEW\n");
+        printf("Initialization error: GLEW\n");
         glfwTerminate();
         return -1;
     }
@@ -261,7 +256,6 @@ int main()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    // Carica entrambe le texture
     bgTexture = createBackgroundTexture();
     milkyWayTexture = loadMilkyWayTexture("milky_way.jpg");
 
@@ -290,7 +284,7 @@ int main()
 
     int sceneStarPosLoc = glGetUniformLocation(sceneShaderProgram, "starPos");
     int sceneStarRadiusLoc = glGetUniformLocation(sceneShaderProgram, "starRadius");
-    int useStarLoc = glGetUniformLocation(sceneShaderProgram, "useStar"); // Nuova uniforme
+    int useStarLoc = glGetUniformLocation(sceneShaderProgram, "useStar");
 
     int blackHolePosLoc = glGetUniformLocation(distortionShaderProgram, "blackHolePos");
     int schwarzschildRadiusLoc = glGetUniformLocation(distortionShaderProgram, "schwarzschildRadius");
@@ -347,7 +341,7 @@ int main()
         glUseProgram(sceneShaderProgram);
         glUniform2f(sceneStarPosLoc, star_x, star_y);
         glUniform1f(sceneStarRadiusLoc, star_radius);
-        glUniform1i(useStarLoc, currentTexture == 0 ? 1 : 0); // Stella visibile solo con texture generata
+        glUniform1i(useStarLoc, currentTexture == 0 ? 1 : 0);
 
         glBindTexture(GL_TEXTURE_2D, currentTexture == 0 ? bgTexture : milkyWayTexture);
         glBindVertexArray(VAO);
