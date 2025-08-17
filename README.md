@@ -81,6 +81,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[RSA Encryption and Decryption with GMP](./project/rsa/)** — RSA implementation using C and the GMP library for handling big numbers.  
 - **[Sudoku Generator & Solver](./project/sudoku/)** — Generates a **fully‑valid Sudoku** and solves it with backtracking.
 - **[Shell](./project/shell/)** — A minimal command-line shell-like emulator written in C using the ncurses library.
+- **[Black Hole Photon Simulation - 2D](./project/black_hole_ray_interaction_2D/)** — This project simulates photon trajectories around a Schwarzschild black hole using OpenGL and GLFW, visualizing their paths, event horizon, and photon sphere with a Runge-Kutta 4th-order integration for geodesic equations.
 - **[Black Hole - 2D](./project/black_hole_light_interaction_2D/)** — An OpenGL simulation of a black hole with a gravitational lensing effect: the scene (starfield background + a movable star) is rendered to a texture and then distorted in real time based on the mouse cursor position, representing the black hole.
 
 ---
@@ -90,7 +91,8 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Ping from Scratch](./project/ping_from_scratch/)** — Just reimplementing the ping command from scratch.
 - **[AES-128](./project/aes/)** — A **minimal implementation** of core AES-128 encryption & decryption steps.
 - **[Liquid simulation](./project/liquid%20simulation/)** — A program that simulates water flowing through a grid of square cells using a very simple cellular model.
-- **[Black Hole - 3D - Ray Simluation](./project/black_hole_ray_interaction_3D/)** — The project is a 3D black hole simulator visualizing light ray trajectories, gravitational distortions, and an accretion disk using OpenGL and GLFW. It enables real-time interaction with camera controls, predefined scenarios, and physical parameters like the Schwarzschild radius.
+- **[Black Hole Ray Simulator - 3D](./project/black_hole_ray_interaction_3D/)** — The project is a 3D black hole simulator visualizing light ray trajectories, gravitational distortions, and an accretion disk using OpenGL and GLFW. It enables real-time interaction with camera controls, predefined scenarios, and physical parameters like the Schwarzschild radius.
+- **[Black Hole Ray Tracer](./project/black_hole_light_interaction_3D/)** — The project simulates gravitational interactions between two stars and a central supermassive black hole, using ray tracing to render light bending according to the Schwarzschild metric of general relativity. It features interactive camera controls (orbit, pan, zoom), a deformable spacetime grid, an accretion disk, and options to pause physics or toggle the grid visibility.
 
 ---
 
