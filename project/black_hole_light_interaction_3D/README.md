@@ -1,7 +1,7 @@
 # Black Hole Simulation with Ray Tracing
 
-![Demo1](../assets/black%20hole%203D.gif)
-![Demo2](../assets/black%20hole%203D%202.gif)
+![Demo](../assets/black%20hole%203D.gif)
+![Demo](../assets/black%20hole%203D%202.gif)
 
 This program simulates the gravitational interactions between three celestial bodies: two stars orbiting a central supermassive black hole. The rendering is performed using ray tracing techniques that incorporate the effects of general relativity, specifically the bending of light rays due to gravity as described by the Schwarzschild metric. The simulation visualizes the spacetime curvature around the black hole, including gravitational lensing, an accretion disk, and the motion of the stars under Newtonian gravity (approximated for the N-body simulation).
 
