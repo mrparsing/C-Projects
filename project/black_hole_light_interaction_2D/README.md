@@ -1,5 +1,5 @@
-# Black Hole simulation - Light interaction
+# Black Hole - 2D
 
-![Demo](../assets/black_hole_light.gif)
+![Demo](../assets/black%20hole%202D.gif)
 
 # To do
