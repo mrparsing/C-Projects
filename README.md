@@ -66,7 +66,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Tiny Regex/Grep](./project/regex/)** — A super–small regular‑expression engine (supports `.` `*` `^` `$`) and a mini **grep** that scans stdin or files line‑by‑line.
 - **[Plinko](./project/plinko/)** — A program that simulates a Plinko board game using SDL2.
 - **[K-Means + Visualization](./project/kmeans/)** — This project implements the K-means clustering algorithm and visualizes the results.
-- **[Black Hole - 2D](./project/black_hole_ray_interaction_2D/)** — A program that traces light rays’ paths around a black hole using the geodesic equations of the Schwarzschild metric. It visually demonstrates how spacetime curvature bends ray trajectories with dynamic animations and colorful trails.
+- **[Black Hole - 2D - Ray Simulation](./project/black_hole_ray_interaction_2D/)** — A program that traces light rays’ paths around a black hole using the geodesic equations of the Schwarzschild metric. It visually demonstrates how spacetime curvature bends ray trajectories with dynamic animations and colorful trails.
 
 ---
 
@@ -90,7 +90,7 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Ping from Scratch](./project/ping_from_scratch/)** — Just reimplementing the ping command from scratch.
 - **[AES-128](./project/aes/)** — A **minimal implementation** of core AES-128 encryption & decryption steps.
 - **[Liquid simulation](./project/liquid%20simulation/)** — A program that simulates water flowing through a grid of square cells using a very simple cellular model.
-- **[Black Hole - 3D](./project/black_hole_3d/)** — The project is a 3D black hole simulator visualizing light ray trajectories, gravitational distortions, and an accretion disk using OpenGL and GLFW. It enables real-time interaction with camera controls, predefined scenarios, and physical parameters like the Schwarzschild radius.
+- **[Black Hole - 3D - Ray Simluation](./project/black_hole_ray_interaction_3D/)** — The project is a 3D black hole simulator visualizing light ray trajectories, gravitational distortions, and an accretion disk using OpenGL and GLFW. It enables real-time interaction with camera controls, predefined scenarios, and physical parameters like the Schwarzschild radius.
 
 ---
 
