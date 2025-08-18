@@ -1144,7 +1144,7 @@ const char *raytracer_fragment_shader_source =
     "        vec3 V = normalize(camPos - P);\n"
     "        vec3 L = normalize(vec3(-1, 1, -1));\n"
     "\n"
-    "        float ambient = 0.1;\n"
+    "        float ambient = 0.5;\n"
     "        float diff = max(dot(N, L), 0.0);\n"
     "        vec3 shaded = hitObjectColor.rgb * (ambient + diff);\n"
     "\n"
