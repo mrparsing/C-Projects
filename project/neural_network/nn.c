@@ -3,34 +3,29 @@
 #include <math.h>
 #include <time.h>
 
-// Simple XOR neural network with 2 input nodes, 2 hidden neurons, and 1 output node
 
 enum { NUM_INPUTS = 2, HIDDEN_NODES = 2, NUM_OUTPUTS = 1, NUM_TRAIN = 4 };
 #define EPOCHS   2000
-#define LR       0.1      // Learning rate
-#define EPS      1e-12    // Epsilon to prevent log(0)
-#define PATIENCE 500      // Early stopping if no improvement
+#define LR       0.1
+#define EPS      1e-12
+#define PATIENCE 500
 
-// Multi-Layer Perceptron structure
 typedef struct {
-    double w_ih[NUM_INPUTS][HIDDEN_NODES]; // input to hidden weights
-    double w_ho[HIDDEN_NODES][NUM_OUTPUTS]; // hidden to output weights
-    double b_h[HIDDEN_NODES]; // biases for hidden layer
-    double b_o[NUM_OUTPUTS];  // biases for output layer
+    double w_ih[NUM_INPUTS][HIDDEN_NODES];
+    double w_ho[HIDDEN_NODES][NUM_OUTPUTS];
+    double b_h[HIDDEN_NODES];
+    double b_o[NUM_OUTPUTS];
 } MLP;
 
-// Activation functions and derivatives
 static double sigmoid(double x) { return 1.0 / (1.0 + exp(-x)); }
 static double d_sigmoid_from_y(double y) { return y * (1.0 - y); }
 
-// Random initialization with Xavier/Glorot method
 static double urand(void) { return (double)rand() / RAND_MAX; }
 static double xavier(int fan_in, int fan_out) {
     double limit = sqrt(6.0 / (fan_in + fan_out));
     return (urand() * 2.0 - 1.0) * limit;
 }
 
-// Initialize weights and biases
 static void init_net(MLP *n) {
     for (int i = 0; i < NUM_INPUTS; ++i)
         for (int j = 0; j < HIDDEN_NODES; ++j)
@@ -42,7 +37,6 @@ static void init_net(MLP *n) {
     for (int j = 0; j < NUM_OUTPUTS;  ++j) n->b_o[j] = 0.0;
 }
 
-// Forward pass: compute hidden and output activations
 static void forward(const MLP *n, const double *x, double *h, double *o) {
     for (int j = 0; j < HIDDEN_NODES; ++j) {
         double a = n->b_h[j];
@@ -59,12 +53,10 @@ static void forward(const MLP *n, const double *x, double *h, double *o) {
     }
 }
 
-// Backward pass: compute gradients and update weights (SGD)
 static void backward(MLP *n, const double *x, const double *t,
                      const double *h, const double *o) {
     double delta_o[NUM_OUTPUTS];
 
-    // Derivative of binary cross-entropy with sigmoid: delta = output - target
     for (int j = 0; j < NUM_OUTPUTS; ++j)
         delta_o[j] = o[j] - t[j];
 
@@ -76,14 +68,12 @@ static void backward(MLP *n, const double *x, const double *t,
         delta_h[i] = err * d_sigmoid_from_y(h[i]);
     }
 
-    // Update output weights and biases
     for (int j = 0; j < NUM_OUTPUTS; ++j) {
         n->b_o[j] -= LR * delta_o[j];
         for (int i = 0; i < HIDDEN_NODES; ++i)
             n->w_ho[i][j] -= LR * h[i] * delta_o[j];
     }
 
-    // Update hidden weights and biases
     for (int j = 0; j < HIDDEN_NODES; ++j) {
         n->b_h[j] -= LR * delta_h[j];
         for (int i = 0; i < NUM_INPUTS; ++i)
@@ -126,14 +116,12 @@ int main(int argc, char **argv) {
     for (int epoch = 1; epoch <= EPOCHS; ++epoch) {
         shuffle(order, NUM_TRAIN);
 
-        // SGD training over each sample
         for (int idx = 0; idx < NUM_TRAIN; ++idx) {
             int k = order[idx];
             forward(&net, X[k], h, o);
             backward(&net, X[k], Y[k], h, o);
         }
 
-        // Evaluation every 500 epochs (or first epoch)
         if (epoch % 500 == 0 || epoch == 1) {
             double loss = 0.0;
             int correct = 0;

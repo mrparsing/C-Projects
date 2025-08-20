@@ -6,15 +6,14 @@
 typedef struct
 {
     int disks[MAX_DISKS];
-    int top; // index of the last element (-1 if empty)
+    int top;
 } Tower;
 
 typedef struct
 {
-    Tower A, B, C; // The three towers
+    Tower A, B, C;
 } State;
 
-// Initialize the initial state with n disks on tower A
 void init_state(State *state, int num_disks)
 {
     state->A.top = num_disks - 1;
@@ -23,11 +22,10 @@ void init_state(State *state, int num_disks)
 
     for (int i = 0; i < num_disks; ++i)
     {
-        state->A.disks[i] = num_disks - i; // Disks from largest (bottom) to smallest (top)
+        state->A.disks[i] = num_disks - i;
     }
 }
 
-// Push a disk onto a tower
 void push(Tower *t, int disk)
 {
     if (t->top >= MAX_DISKS - 1)
@@ -38,7 +36,6 @@ void push(Tower *t, int disk)
     t->disks[++(t->top)] = disk;
 }
 
-// Pop the top disk from a tower
 int pop(Tower *t)
 {
     if (t->top < 0)
@@ -49,7 +46,6 @@ int pop(Tower *t)
     return t->disks[(t->top)--];
 }
 
-// Print a single tower
 void print_tower(const Tower *t, char name)
 {
     printf("Tower %c: ", name);
@@ -60,7 +56,6 @@ void print_tower(const Tower *t, char name)
     printf("\n");
 }
 
-// Print the full state (all three towers)
 void print_state(const State *state)
 {
     print_tower(&state->A, 'A');
@@ -69,7 +64,6 @@ void print_state(const State *state)
     printf("\n");
 }
 
-// Move the top disk from one tower to another
 void move_disk(State *state, char from_name, char to_name)
 {
     Tower *from, *to;
@@ -99,7 +93,6 @@ void move_disk(State *state, char from_name, char to_name)
     printf("Move disk %d from %c to %c\n", disk, from_name, to_name);
 }
 
-// Recursive Hanoi solver
 void solve_hanoi(State *state, int n, char from, char to, char aux)
 {
     if (n == 1)

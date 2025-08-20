@@ -16,7 +16,7 @@ typedef struct
 {
     double x;
     double gap_y;
-    double gap_height; // empty space
+    double gap_height;
     double width;
 } Column;
 
@@ -33,7 +33,6 @@ int RandRange(int Min, int Max)
     return (int)(((double)(diff + 1) / RAND_MAX) * rand() + Min);
 }
 
-/* Find the rightmost pipe */
 int find_rightmost_x(Column columns[NUM_COLUMNS])
 {
     int max_x = 0;
@@ -118,10 +117,8 @@ void move_columns(Column *columns, int passed[NUM_COLUMNS])
     {
         columns[i].x -= 2;
 
-        // printf("%d\n", columns[9].x + columns[9].width);
         if (columns[i].x + columns[i].width < 0)
         {
-            // I return the i-th column to the right
             int rightmost = find_rightmost_x(columns);
             columns[i].x = rightmost + 200;
             columns[i].gap_y = rand() % (HEIGHT - 200);
@@ -163,7 +160,7 @@ void render_text(SDL_Renderer *renderer, TTF_Font *font, int game_over)
     else
         snprintf(text, sizeof(text), "%d", score);
 
-    SDL_Color color = {0, 0, 0, 0}; // black
+    SDL_Color color = {0, 0, 0, 0};
 
     SDL_Surface *surface = TTF_RenderText_Solid(font, text, color);
     if (!surface)
@@ -232,7 +229,6 @@ int main()
         return 1;
     }
 
-    // TEXTURES
     SDL_Surface *bird_surface = IMG_Load("textures/bird.png");
     if (!bird_surface)
     {
@@ -290,7 +286,7 @@ int main()
         SDL_RenderCopy(renderer, bg_texture, NULL, &bg_dest);
 
         Uint32 now = SDL_GetTicks();
-        double dt = (now - prev_ticks) / 1000.0; // in seconds
+        double dt = (now - prev_ticks) / 1000.0;
         prev_ticks = now;
         while (SDL_PollEvent(&event))
         {
@@ -308,7 +304,7 @@ int main()
                         playing = 1;
                     }
                     break;
-                case SDLK_r: // reset
+                case SDLK_r:
                     bird.x = 100;
                     bird.y = HEIGHT / 2;
                     bird.vy = 10.0;

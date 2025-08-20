@@ -13,18 +13,15 @@
 #define ROWS (HEIGHT / CELL_SIZE)
 #define COLUMNS (WIDTH / CELL_SIZE)
 
-// Represents one cell in the simulation
 struct Cell {
-    int x;     // X position in grid coordinates
-    int y;     // Y position in grid coordinates
-    int live;  // 1 if alive, 0 if dead
+    int x;
+    int y;
+    int live;
 };
 
-// Draws a grid overlay (optional visual aid)
 void draw_grid(SDL_Surface *surface, Uint32 color) {
     SDL_Rect line;
 
-    // Vertical lines
     for (int x = 0; x <= WIDTH; x += CELL_SIZE) {
         line.x = x;
         line.y = 0;
@@ -33,7 +30,6 @@ void draw_grid(SDL_Surface *surface, Uint32 color) {
         SDL_FillRect(surface, &line, color);
     }
 
-    // Horizontal lines
     for (int y = 0; y <= HEIGHT; y += CELL_SIZE) {
         line.x = 0;
         line.y = y;
@@ -43,7 +39,6 @@ void draw_grid(SDL_Surface *surface, Uint32 color) {
     }
 }
 
-// Initializes the world with a random distribution of live cells
 void initialize_environment(struct Cell world[NUM_CELL]) {
     for (int i = 0; i < ROWS; i++) {
         for (int j = 0; j < COLUMNS; j++) {
@@ -56,7 +51,6 @@ void initialize_environment(struct Cell world[NUM_CELL]) {
     }
 }
 
-// Draws a single cell as a filled rectangle
 void draw_cell(SDL_Surface *surface, struct Cell cellData, int live) {
     SDL_Rect rect;
     rect.x = cellData.x * CELL_SIZE;
@@ -65,30 +59,27 @@ void draw_cell(SDL_Surface *surface, struct Cell cellData, int live) {
     rect.h = CELL_SIZE;
 
     Uint32 color = (live == 1) ?
-        SDL_MapRGB(surface->format, 255, 255, 255) : // white
-        SDL_MapRGB(surface->format, 0, 0, 0);        // black
+        SDL_MapRGB(surface->format, 255, 255, 255) :
+        SDL_MapRGB(surface->format, 0, 0, 0);
 
     SDL_FillRect(surface, &rect, color);
 }
 
-// Draws the entire environment (each cell)
 void draw_environment(SDL_Surface *surface, struct Cell world[NUM_CELL]) {
     for (int i = 0; i < NUM_CELL; i++) {
         draw_cell(surface, world[i], world[i].live);
     }
 }
 
-// Updates all cells according to Conway's Game of Life rules
 void check_cell(struct Cell world[NUM_CELL]) {
     struct Cell world_copy[NUM_CELL];
-    memcpy(world_copy, world, sizeof(world_copy)); // Copy current state
+    memcpy(world_copy, world, sizeof(world_copy));
 
     for (int i = 0; i < ROWS; i++) {
         for (int j = 0; j < COLUMNS; j++) {
             struct Cell cell_to_check = world_copy[j + COLUMNS * i];
             int live = 0;
 
-            // Count the number of live neighbors (8 directions)
             if (i > 0 && j > 0)
                 live += world_copy[(j - 1) + COLUMNS * (i - 1)].live;
             if (i > 0)
@@ -106,13 +97,12 @@ void check_cell(struct Cell world[NUM_CELL]) {
             if (j < COLUMNS - 1 && i < ROWS - 1)
                 live += world_copy[(j + 1) + COLUMNS * (i + 1)].live;
 
-            // Apply Conway's rules:
             if (cell_to_check.live == 1 && (live < 2 || live > 3))
-                world[j + COLUMNS * i].live = 0; // dies
+                world[j + COLUMNS * i].live = 0;
             else if (cell_to_check.live == 0 && live == 3)
-                world[j + COLUMNS * i].live = 1; // born
+                world[j + COLUMNS * i].live = 1;
             else
-                world[j + COLUMNS * i].live = cell_to_check.live; // stays unchanged
+                world[j + COLUMNS * i].live = cell_to_check.live;
         }
     }
 }
@@ -152,23 +142,21 @@ int main() {
             if (event.type == SDL_QUIT)
                 running = 0;
 
-            // Keyboard controls
             if (event.type == SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
-                case SDLK_SPACE: // toggle pause
+                case SDLK_SPACE:
                     paused = !paused;
                     break;
-                case SDLK_n: // step manually if paused
+                case SDLK_n:
                     if (paused)
                         check_cell(world);
                     break;
-                case SDLK_r: // reset environment
+                case SDLK_r:
                     initialize_environment(world);
                     break;
                 }
             }
 
-            // Mouse click adds a live cell
             else if (event.type == SDL_MOUSEBUTTONDOWN) {
                 int x = event.button.x / CELL_SIZE;
                 int y = event.button.y / CELL_SIZE;
@@ -181,15 +169,12 @@ int main() {
         if (SDL_MUSTLOCK(surface))
             SDL_LockSurface(surface);
 
-        // Clear screen to black
         SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 0, 0));
 
-        // Draw only alive cells
         for (int i = 0; i < NUM_CELL; ++i)
             if (world[i].live)
                 draw_cell(surface, world[i], 1);
 
-        // Optional: draw the grid
         draw_grid(surface, color_gray);
 
         if (SDL_MUSTLOCK(surface))
@@ -197,11 +182,10 @@ int main() {
 
         SDL_UpdateWindowSurface(window);
 
-        // Advance simulation if not paused
         if (!paused)
             check_cell(world);
 
-        SDL_Delay(16); // ~60 FPS
+        SDL_Delay(16);
     }
 
     SDL_DestroyWindow(window);

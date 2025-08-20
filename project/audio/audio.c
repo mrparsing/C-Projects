@@ -47,14 +47,12 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Start playback
     SDL_PauseAudioDevice(dev, 0);
     printf("Playback started.\n");
 
-    // Wait until the audio queue is empty
     while (SDL_GetQueuedAudioSize(dev) > 0)
     {
-        SDL_Delay(50); // 50 ms polling
+        SDL_Delay(50);
     }
 
     printf("Playback finished.\n");

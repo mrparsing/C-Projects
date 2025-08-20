@@ -3,8 +3,8 @@
 #include <ctype.h>
 
 int main() {
-    char input[32];  // buffer for up to 31 characters + null terminator
-    int digits[19];  // array to hold up to 19 digits (maximum card length)
+    char input[32];
+    int digits[19];
     int len = 0;
 
     printf("Enter credit card number without spaces: ");
@@ -13,7 +13,6 @@ int main() {
         return 1;
     }
 
-    // Extract digits from input and store them in the array
     for (int i = 0; input[i] != '\0' && len < 19; i++) {
         if (isdigit((unsigned char)input[i])) {
             digits[len++] = input[i] - '0';
@@ -31,13 +30,11 @@ int main() {
         digits[i] = double_digit;
     }
 
-    // Sum all digits
     int sum = 0;
     for (int i = 0; i < len; i++) {
         sum += digits[i];
     }
 
-    // If total modulo 10 is 0, the number is valid
     if (sum % 10 == 0) {
         printf("VALID NUMBER!!\n");
     } else {

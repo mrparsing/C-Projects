@@ -25,7 +25,7 @@ static const char *find_keyboard_by_path(void)
     {
         strncpy(result, g.gl_pathv[0], sizeof(result) - 1);
         globfree(&g);
-        return result; /* stable symlink to the keyboard */
+        return result;
     }
     globfree(&g);
     return NULL;
@@ -59,7 +59,6 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    /* Handle Ctrl-C */
     struct sigaction sa = {.sa_handler = handle_sigint, .sa_flags = SA_RESTART};
     sigemptyset(&sa.sa_mask);
     sigaction(SIGINT, &sa, NULL);
@@ -71,7 +70,7 @@ int main(void)
         if (bytes < 0)
         {
             if (errno == EINTR)
-                continue; /* interrupted by signal */
+                continue;
             perror("read");
             break;
         }
@@ -82,7 +81,7 @@ int main(void)
         }
 
         if (ev.type == EV_KEY && ev.value == 1)
-        { /* key press */
+        {
             if (ev.code < KEY_CNT && key_code_names[ev.code])
                 printf("%s ", key_code_names[ev.code]);
             else

@@ -4,16 +4,13 @@
 
 #define MAX_LINE 1024
 
-// === PROTOTYPES ===
 int match(char *regexp, char *text);
 int matchhere(char *regexp, char *text);
 int matchstar(int c, char *regexp, char *text);
 
-// === Top-level match function ===
-// Supports optional ^ anchor. Tries to match the regex anywhere in text.
 int match(char *regexp, char *text) {
     if (regexp[0] == '^')
-        return matchhere(regexp + 1, text);  // anchored at beginning
+        return matchhere(regexp + 1, text);
     do {
         if (matchhere(regexp, text))
             return 1;
@@ -21,25 +18,21 @@ int match(char *regexp, char *text) {
     return 0;
 }
 
-// === Match from here (core of the engine) ===
 int matchhere(char *regexp, char *text) {
     if (regexp[0] == '\0')
         return 1;
     if (regexp[1] == '*')
-        return matchstar(regexp[0], regexp + 2, text);  // handle x*
+        return matchstar(regexp[0], regexp + 2, text);
     if (regexp[0] == '$' && regexp[1] == '\0')
         return *text == '\0';
     if (*text != '\0' && (regexp[0] == '.' || regexp[0] == *text))
-        return matchhere(regexp + 1, text + 1);  // match one char
+        return matchhere(regexp + 1, text + 1);
     return 0;
 }
 
-// === Handle c* (zero or more of char c) ===
 int matchstar(int c, char *regexp, char *text) {
     char *t;
-    // consume as many c as possible (greedy)
     for (t = text; *t != '\0' && (*t == c || c == '.'); t++);
-    // Try matching regex from the end of that run, backtracking
     do {
         if (matchhere(regexp, t))
             return 1;
@@ -47,7 +40,6 @@ int matchstar(int c, char *regexp, char *text) {
     return 0;
 }
 
-// === Main function: mini grep ===
 int main(int argc, char *argv[]) {
     if (argc < 2) {
         fprintf(stderr, "Usage: %s <regex> [file...]\n", argv[0]);

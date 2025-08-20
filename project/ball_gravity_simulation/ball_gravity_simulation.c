@@ -6,22 +6,20 @@
 
 #define WIDTH 900
 #define HEIGHT 600
-#define GRAVITY 800.0 /* pixel per second^2*/
+#define GRAVITY 800.0
 #define COLOR_BLACK 0xFF000000
 #define REST_SIDE 0.7
-#define REST_BALL 0.6 /* circle-to-circle rebound coefficient */
+#define REST_BALL 0.6
 
-/* -------------------- Circle structure -------------------- */
 typedef struct
 {
     double x;
     double y;
     double r;
-    double vy; // vertical speed in pixels/sec
+    double vy;
     double vx;
 } Circle;
 
-/* -------------------- Dynamic array of circles -------------------- */
 typedef struct
 {
     Circle *array;
@@ -103,10 +101,8 @@ void freeQuadArray(QuadArray *a)
     a->used = a->size = 0;
 }
 
-/* -------------------- Filled circle drawing -------------------- */
 static void FillCircle(SDL_Surface *surface, Circle circle, Uint32 color)
 {
-    /* Integer limits of the bounding box of the circle */
     int minx = (int)(circle.x - circle.r);
     int maxx = (int)(circle.x + circle.r);
     int miny = (int)(circle.y - circle.r);
@@ -118,17 +114,15 @@ static void FillCircle(SDL_Surface *surface, Circle circle, Uint32 color)
         SDL_LockSurface(surface);
 
     Uint8 *pixels = (Uint8 *)surface->pixels;
-    int pitch = surface->pitch;               /* bytes per row */
+    int pitch = surface->pitch;
     int bpp = surface->format->BytesPerPixel;
 
     for (int y = miny; y <= maxy; ++y)
     {
         for (int x = minx; x <= maxx; ++x)
         {
-            /* Check bounds */
             if (x < 0 || x >= surface->w || y < 0 || y >= surface->h)
                 continue;
-            /* Distance from center */
             double dx = x - circle.x;
             double dy = y - circle.y;
             if (dx * dx + dy * dy <= r2)
@@ -223,7 +217,6 @@ static void resolveCircleQuad(Circle *c, const Quad *q)
         }
     }
 
-    /* rebound */
     double vn = c->vx * nx + c->vy * ny;
     if (vn < 0.0)
     {
@@ -263,14 +256,14 @@ int main(void)
     int wall = 0;
     double spawn_ball_accum = 0.0;
     double spawn_wall_accum = 0.0;
-    const double spawn_interval = 0.05; // Creates ~20 balls per second while holding down
+    const double spawn_interval = 0.05;
     SDL_Event e;
 
-    Uint32 prev_ticks = SDL_GetTicks(); // ms from SDL init
+    Uint32 prev_ticks = SDL_GetTicks();
     while (running)
     {
         Uint32 now = SDL_GetTicks();
-        double dt = (now - prev_ticks) / 1000.0; // in seconds
+        double dt = (now - prev_ticks) / 1000.0;
         prev_ticks = now;
         while (SDL_PollEvent(&e))
         {
@@ -337,14 +330,14 @@ int main(void)
         }
         for (size_t i = 0; i < circles.used; ++i)
         {
-            circles.array[i].vy += GRAVITY * dt;            // accelerate downwards
-            circles.array[i].y += circles.array[i].vy * dt; // update position
+            circles.array[i].vy += GRAVITY * dt;
+            circles.array[i].y += circles.array[i].vy * dt;
 
             circles.array[i].vx += 0.0 * dt;
             circles.array[i].x += circles.array[i].vx * dt;
         }
 
-        SDL_FillRect(surface, NULL, COLOR_BLACK); // clear
+        SDL_FillRect(surface, NULL, COLOR_BLACK);
 
         for (size_t i = 0; i < circles.used; ++i)
         {
@@ -365,9 +358,9 @@ int main(void)
             if (circles.array[i].y + circles.array[i].r >= HEIGHT)
             {
                 circles.array[i].y = HEIGHT - circles.array[i].r;
-                circles.array[i].vy = -circles.array[i].vy * 0.7; // 70% energia
+                circles.array[i].vy = -circles.array[i].vy * 0.7;
                 if (fabs(circles.array[i].vy) < 5.0)
-                    circles.array[i].vy = 0.0; // ferma se molto lento
+                    circles.array[i].vy = 0.0;
             }
 
             // LEFT WALL
@@ -401,7 +394,6 @@ int main(void)
 
                     double dist = sqrt(dist2);
 
-                    /* normal contact */
                     double nx, ny;
                     if (dist > 0.0)
                     {
@@ -431,7 +423,7 @@ int main(void)
                         continue;
                     }
 
-                    double jimp = -(1.0 + REST_BALL) * vn / 2.0; // / (1/m1 + 1/m2) = /2
+                    double jimp = -(1.0 + REST_BALL) * vn / 2.0;
 
                     circles.array[k].vx -= jimp * nx;
                     circles.array[k].vy -= jimp * ny;

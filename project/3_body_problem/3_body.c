@@ -2,45 +2,35 @@
 #include <math.h>
 #include <SDL2/SDL.h>
 
-/* -------------------------------------------------------------------------- */
-/*  CONFIGURATION                                                             */
-/* -------------------------------------------------------------------------- */
 #define WIDTH   1200
 #define HEIGHT  800
 
 #define NUM_BODIES 3
-#define TRAIL_BUF  5000       // Max trail points per body
-#define MIN_DIST   1.5        // Save trail point only if moved by ≥ MIN_DIST px
+#define TRAIL_BUF  5000
+#define MIN_DIST   1.5
 
 #define G        10000.0
 #define EPSILON  1e-6
 
-// ARGB colors for SDL surface
 #define COL_BLACK      0x00000000
 #define COL_YELLOW     0x00ffff00
 #define COL_LIGHTBLUE  0x00007fff
 #define COL_WHITE      0x00ffffff
 
-/* -------------------------------------------------------------------------- */
-/*  STRUCTS                                                                   */
-/* -------------------------------------------------------------------------- */
 typedef struct {
-    double x, y;          // Position (in pixels)
-    double vx, vy;        // Velocity (pixels per second)
+    double x, y;
+    double vx, vy;
     double mass;
-    double r;             // Radius in pixels (for drawing)
+    double r;
 } Planet;
 
 typedef struct {
     int x[TRAIL_BUF];
     int y[TRAIL_BUF];
-    int head;             // Index of next free slot
-    int size;             // Valid trail point count
+    int head;
+    int size;
 } Trail;
 
-/* -------------------------------------------------------------------------- */
-/*  DRAWING UTILITIES                                                         */
-/* -------------------------------------------------------------------------- */
 static void fill_circle(SDL_Surface *surf, int cx, int cy, int rad, Uint32 col)
 {
     int rad2 = rad * rad;
@@ -86,9 +76,6 @@ static void trail_draw(SDL_Surface *surf, const Trail *t, Uint32 col)
     }
 }
 
-/* -------------------------------------------------------------------------- */
-/*  PHYSICS – LEAPFROG INTEGRATOR                                             */
-/* -------------------------------------------------------------------------- */
 static void accelerations(const Planet b[], double ax[], double ay[])
 {
     for (int i = 0; i < NUM_BODIES; ++i) ax[i] = ay[i] = 0.0;
@@ -137,9 +124,6 @@ static void step_leapfrog(Planet b[], double dt)
     }
 }
 
-/* -------------------------------------------------------------------------- */
-/*  CAMERA – RECENTER ON CENTER OF MASS                                       */
-/* -------------------------------------------------------------------------- */
 static void recenter(Planet b[])
 {
     double cx = 0, cy = 0, M = 0;
@@ -159,9 +143,6 @@ static void recenter(Planet b[])
     }
 }
 
-/* -------------------------------------------------------------------------- */
-/*  MAIN LOOP                                                                 */
-/* -------------------------------------------------------------------------- */
 int main(void)
 {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -183,7 +164,6 @@ int main(void)
         return 1;
     }
 
-    // Initial figure-8 configuration (scaled)
     Planet bodies[NUM_BODIES];
     const double S  = 140.0;
     const double VS = 140.0;
@@ -237,7 +217,7 @@ int main(void)
         fill_circle(surf, (int)bodies[2].x, (int)bodies[2].y, (int)bodies[2].r, COL_WHITE);
 
         SDL_UpdateWindowSurface(win);
-        SDL_Delay(16); // ~60 FPS
+        SDL_Delay(16);
     }
 
     SDL_DestroyWindow(win);

@@ -4,15 +4,13 @@
 #define WIDTH 900
 #define HEIGHT 600
 #define COLOR_WHITE 0xffffffff
-#define DISTANCE 5.0f // Distance of virtual camera from projection plane
+#define DISTANCE 5.0f
 
-// Struct for a projected 2D vertex of the cube
 struct Cube {
     int x;
     int y;
 };
 
-// Perspective projection of a 3D point (x, y, z) to screen coordinates (x2D, y2D)
 void project(float x, float y, float z, float *x2D, float *y2D) {
     float scale = DISTANCE / (z + DISTANCE);
     float screen_factor = scale * ((WIDTH < HEIGHT ? WIDTH : HEIGHT) / 2.0f);
@@ -20,7 +18,6 @@ void project(float x, float y, float z, float *x2D, float *y2D) {
     *y2D = y * screen_factor + HEIGHT / 2.0f;
 }
 
-// Simple line drawing using Bresenham's algorithm
 void DrawLine(SDL_Surface *surface, int x0, int y0, int x1, int y1, Uint32 color) {
     int dx = abs(x1 - x0);
     int dy = abs(y1 - y0);
@@ -47,7 +44,6 @@ void DrawLine(SDL_Surface *surface, int x0, int y0, int x1, int y1, Uint32 color
     }
 }
 
-// Rotate a point in 3D space around the origin using Euler angles (X, Y, Z)
 void rotation(float x, float y, float z,
               float *x_rot, float *y_rot, float *z_rot,
               float angleX, float angleY, float angleZ) {
@@ -84,7 +80,6 @@ int main(void) {
     int running = 1;
     SDL_Event e;
 
-    // Cube vertices (8 corners of a unit cube centered at the origin)
     int cube[8][3] = {
         {-1, -1, -1}, {1, -1, -1},
         {1, 1, -1}, {-1, 1, -1},
@@ -92,19 +87,18 @@ int main(void) {
         {1, 1, 1}, {-1, 1, 1}
     };
 
-    struct Cube cube2D[8]; // Array to hold the projected 2D coordinates
+    struct Cube cube2D[8];
 
     float angleX = 0;
     float angleY = 0;
     float angleZ = 0;
 
-    float z_offset = 10.0f; // Offset to keep the cube in front of the camera
+    float z_offset = 10.0f;
 
-    // Pairs of vertices representing the cube's 12 edges
     int edges[12][2] = {
-        {0, 1}, {1, 2}, {2, 3}, {3, 0}, // bottom face
-        {4, 5}, {5, 6}, {6, 7}, {7, 4}, // top face
-        {0, 4}, {1, 5}, {2, 6}, {3, 7}  // vertical edges
+        {0, 1}, {1, 2}, {2, 3}, {3, 0},
+        {4, 5}, {5, 6}, {6, 7}, {7, 4},
+        {0, 4}, {1, 5}, {2, 6}, {3, 7}
     };
 
     while (running) {
@@ -113,9 +107,8 @@ int main(void) {
                 running = 0;
         }
 
-        SDL_FillRect(surface, NULL, 0x000000); // Clear screen
+        SDL_FillRect(surface, NULL, 0x000000);
 
-        // Rotate and project each vertex
         for (int i = 0; i < 8; i++) {
             float x2D, y2D;
             float x_r, y_r, z_r;
@@ -124,20 +117,18 @@ int main(void) {
                      &x_r, &y_r, &z_r,
                      angleX, angleY, angleZ);
 
-            project(x_r, y_r, z_r + z_offset, &x2D, &y2D); // Apply projection
+            project(x_r, y_r, z_r + z_offset, &x2D, &y2D);
 
             cube2D[i].x = (int)x2D;
             cube2D[i].y = (int)y2D;
         }
 
-        // Draw all cube edges
         for (int i = 0; i < 12; i++) {
             int a = edges[i][0];
             int b = edges[i][1];
             DrawLine(surface, cube2D[a].x, cube2D[a].y, cube2D[b].x, cube2D[b].y, COLOR_WHITE);
         }
 
-        // Increment angles for animation
         angleX += 0.01f;
         angleY += 0.02f;
         angleZ += 0.015f;

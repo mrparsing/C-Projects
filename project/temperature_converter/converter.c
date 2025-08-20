@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// === Conversion functions ===
 float convert_C_to_F(float temperature)
 {
     return temperature * 9 / 5 + 32;
@@ -32,7 +31,6 @@ float convert_F_to_K(float temperature)
     return (temperature - 32) * 5 / 9 + 273.15;
 }
 
-// === Main conversion handler ===
 void convert(float temperature, char unit_from, char unit_to)
 {
     switch (unit_from)
@@ -97,8 +95,8 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    float temperature = atof(argv[1]);     // Convert input string to float
-    char unit_from = argv[2][0];           // Use only the first character (C, F, K)
+    float temperature = atof(argv[1]);
+    char unit_from = argv[2][0];
     char unit_to = argv[3][0];
 
     convert(temperature, unit_from, unit_to);

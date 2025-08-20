@@ -17,11 +17,9 @@ int main()
     char buffer[512];
     const char *response = "HELLO";
 
-    // Clear memory for server and client address structures
     memset(&server, 0, sizeof(server));
     memset(&client, 0, sizeof(client));
 
-    // Create a TCP socket
     s = socket(AF_INET, SOCK_STREAM, 0);
     if (s < 0)
     {
@@ -29,12 +27,10 @@ int main()
         return -1;
     }
 
-    // Set up server address
     server.sin_family = AF_INET;
-    server.sin_addr.s_addr = INADDR_ANY;  // Bind to all interfaces
+    server.sin_addr.s_addr = INADDR_ANY;
     server.sin_port = htons(PORT);
 
-    // Bind the socket to the port
     if (bind(s, (struct sockaddr *)&server, sizeof(server)) < 0)
     {
         perror("bind");
@@ -42,7 +38,6 @@ int main()
         return -1;
     }
 
-    // Start listening
     if (listen(s, 5) < 0)
     {
         perror("listen");
@@ -52,9 +47,8 @@ int main()
 
     printf("Listening on port %d...\n", PORT);
 
-    addrlen = sizeof(client);  // Important! Otherwise accept() won't write the address properly
+    addrlen = sizeof(client);
 
-    // Accept one client connection
     c = accept(s, (struct sockaddr *)&client, &addrlen);
     if (c < 0)
     {
@@ -65,14 +59,12 @@ int main()
 
     printf("Client connected: %s\n", inet_ntoa(client.sin_addr));
 
-    // Read data from client
     ssize_t bytes_read = read(c, buffer, sizeof(buffer) - 1);
     if (bytes_read > 0)
     {
-        buffer[bytes_read] = '\0';  // Null-terminate input
+        buffer[bytes_read] = '\0';
         printf("Received: %s\n", buffer);
 
-        // Send response
         write(c, response, strlen(response));
     }
     else
@@ -80,7 +72,6 @@ int main()
         printf("Read failed or client disconnected.\n");
     }
 
-    // Close sockets
     close(c);
     close(s);
 

@@ -26,7 +26,7 @@ struct Cell
 {
     int x;
     int y;
-    int type; // 0 = vuoto, 1 = sorgente, 2 = obiettivo, 3 = muro, 4 = percorso, 5 = open set, 6 = closed set
+    int type; // 0 = empty, 1 = source, 2 = goal, 3 = wall, 4 = path, 5 = open set, 6 = closed set
 };
 
 void draw_grid(SDL_Surface *surface, Uint32 color)
@@ -302,9 +302,8 @@ int main()
 
                 if (index >= 0 && index < NUM_CELL)
                 {
-                    // Evita di sovrascrivere sorgente/obiettivo
                     if (cell_type == 3 && world[index].type != 1 && world[index].type != 2)
-                        world[index].type = 3; // muro
+                        world[index].type = 3;
                 }
             }
         }

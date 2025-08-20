@@ -126,7 +126,7 @@ int main(void) {
     SDL_Surface *surface = SDL_GetWindowSurface(window);
 
     SDL_Rect erase_rect = {0, 0, WIDTH, HEIGHT};
-    struct Circle circle = {200, 200, 20};          // cerchio mobile più piccolo
+    struct Circle circle = {200, 200, 20};
     struct Circle shadow_circle = {600, 300, 110};
     struct Ray rays[RAYS_NUMBER];
 

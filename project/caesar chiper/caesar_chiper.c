@@ -2,9 +2,6 @@
 #include <string.h>
 #include <unistd.h>
 
-/* Ask the user for a key (integer).                                           
- * The key is reduced modulo 26 so that large values wrap within the alphabet. 
- * Negative keys are normalized into the 0..25 range.                          */
 int get_key()
 {
     int key;
@@ -21,8 +18,6 @@ int get_key()
     return key;
 }
 
-/* Read a line of text from stdin into the provided buffer.                    
- * Trailing newline (if present) is stripped.                                  */
 void get_sentence(char *buf, size_t size)
 {
     printf("Enter the sentence: ");
@@ -30,9 +25,6 @@ void get_sentence(char *buf, size_t size)
     buf[strcspn(buf, "\n")] = 0;
 }
 
-/* Shift a single character by 'key' positions within the alphabet.           
- * Only ASCII letters [A-Z] and [a-z] are shifted; all others are returned      
- * unchanged.                                                                  */
 char shift_char(char c, int key)
 {
     if (c >= 'a' && c <= 'z')
@@ -47,11 +39,6 @@ char shift_char(char c, int key)
     return c;
 }
 
-/* Encrypt flow:                                                               
- *   1. Prompt for the sentence.                                               
- *   2. Prompt for the key.                                                    
- *   3. Apply shift_char() to each character using the normalized key.         
- *   4. Print the encrypted result.                                            */
 void caesar_encrypt()
 {
     char sentence[1024];
@@ -71,11 +58,6 @@ void caesar_encrypt()
     printf("\nEncrypted text: %s\n\n", sentence);
 }
 
-/* Decrypt flow mirrors encrypt:                                               
- *   1. Prompt for the sentence.                                               
- *   2. Prompt for the key.                                                    
- *   3. To decrypt, shift each character by (26 - key) (original logic).       
- *   4. Print the decrypted result.                                            */
 void decrypt()
 {
     char sentence[1024];
@@ -99,7 +81,6 @@ int main()
 {
     int option;
 
-    /* Friendly welcome banner */
     printf("===================================================\n");
     printf("           Welcome to the Caesar Cipher!\n");
     printf("  Have fun encrypting and decrypting messages. :)\n");
@@ -114,7 +95,7 @@ int main()
         printf("Enter an option: ");
         scanf("%d", &option);
         while (getchar() != '\n')
-            ; // flush leftover input (newline, extra chars)
+            ;
 
         switch (option)
         {

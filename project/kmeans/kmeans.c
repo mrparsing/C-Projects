@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 
-#define K 5 // clusters
+#define K 5
 #define MAX_ITERS 100
 #define MAX_POINTS 1000
 #define WINDOW_WIDTH 800
@@ -23,10 +23,10 @@ typedef struct
 } Centroid;
 
 SDL_Color cluster_colors[K] = {
-    {255, 100, 100, 255}, // red
-    {100, 255, 100, 255}, // green
-    {100, 100, 255, 255}, // blue
-    {255, 255, 100, 255}, // yellow
+    {255, 100, 100, 255},
+    {100, 255, 100, 255},
+    {100, 100, 255, 255},
+    {255, 255, 100, 255},
     {200, 50, 200, 255}};
 
 double euclidean(Point point, Centroid centroid)
@@ -34,10 +34,6 @@ double euclidean(Point point, Centroid centroid)
     return sqrt(pow(point.x - centroid.x, 2) + pow(point.y - centroid.y, 2));
 }
 
-/*
-normalize the coordinates of 2D points so that
-they are scaled and translated in a uniform range
-*/
 void normalize_points(Point data[], int n)
 {
     double min_x = data[0].x, max_x = data[0].x;

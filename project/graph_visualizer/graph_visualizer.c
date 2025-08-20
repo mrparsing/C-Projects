@@ -57,7 +57,6 @@ void draw_arrow(SDL_Renderer *renderer, int x1, int y1, int x2, int y2)
 
     SDL_RenderDrawLine(renderer, new_x1, new_y1, new_x2, new_y2);
 
-    // ARROW
     float arrow_length = 12.0;
     float arrow_angle = M_PI / 6;
 
@@ -98,7 +97,6 @@ void bellman_ford(Node nodes[], int nodes_count, Edge edges[], int edges_count,
         pred[i] = -1;
     }
 
-    // Find source node
     int source_index = -1;
     for (int i = 0; i < nodes_count; i++)
     {

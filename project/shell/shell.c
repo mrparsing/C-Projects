@@ -84,7 +84,6 @@ void strings_append(Strings *arr, String *s)
         arr->data = new;
     }
 
-    // Deep copy of the string
     String copy = {0};
     copy.data = malloc(s->count);
     ASSERT(copy.data, "no memory");
@@ -173,8 +172,8 @@ int main()
     size_t line = 0;
     size_t current_command = 0;
     size_t command_max = 0;
-    size_t cursor = 0;                   // current cursor position in the line
-    ssize_t current_command_index = -1;  // -1 = no command selected
+    size_t cursor = 0;
+    ssize_t current_command_index = -1;
     bool editing_history = false;
 
     while (!QUIT)
@@ -188,7 +187,7 @@ int main()
         }
 
         move(line, 0);
-        clrtoeol(); // clear the entire line before writing
+        clrtoeol();
         mvprintw(line, 0, "> ");
         mvprintw(line, 2, "%.*s", (int)command.count, command.data);
         move(line, 2 + cursor);
@@ -200,10 +199,9 @@ int main()
             QUIT = true;
             break;
         case 10: // ENTER
-            // Finalize the command line on screen and go to next line
             mvprintw(line, 0, "> %.*s", (int)command.count, command.data);
             line++;
-            move(line, 0); // Move cursor to the new line
+            move(line, 0);
 
             strings_append(&command_history, &command);
 
@@ -213,7 +211,6 @@ int main()
                 int argc;
                 char **argv = tokenize(cmd_cstr, &argc);
 
-                // ✅ 1. Create a pipe
                 int pipefd[2];
                 if (pipe(pipefd) == -1)
                 {
@@ -230,13 +227,9 @@ int main()
 
                 if (pid == 0)
                 {
-                    // --- Child Process ---
-                    // We don't need endwin() here
-
-                    // ✅ 2. Redirect stdout to the pipe
-                    close(pipefd[0]);                // Child doesn't read from pipe
-                    dup2(pipefd[1], STDOUT_FILENO);  // Redirect stdout
-                    dup2(pipefd[1], STDERR_FILENO);  // Also redirect stderr (optional)
+                    close(pipefd[0]);
+                    dup2(pipefd[1], STDOUT_FILENO);
+                    dup2(pipefd[1], STDERR_FILENO);
                     close(pipefd[1]);
 
                     execvp(argv[0], argv);
@@ -245,21 +238,18 @@ int main()
                 }
                 else
                 {
-                    // --- Parent Process ---
-                    close(pipefd[1]); // Parent doesn't write to pipe
+                    close(pipefd[1]);
 
-                    // ✅ 3. Read output from pipe and print it with ncurses
                     char buffer[256];
                     ssize_t nbytes;
                     while ((nbytes = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0)
                     {
                         buffer[nbytes] = '\0';
-                        // Print buffer character by character to properly handle newlines
                         for (ssize_t i = 0; i < nbytes; ++i)
                         {
                             if (buffer[i] == '\n')
                             {
-                                clrtoeol(); // Clear rest of line
+                                clrtoeol();
                                 line++;
                                 move(line, 0);
                             }
@@ -274,20 +264,17 @@ int main()
                     waitpid(pid, NULL, 0);
                 }
 
-                // Cleanup
                 for (int i = 0; i < argc; i++)
                     free(argv[i]);
                 free(argv);
                 free(cmd_cstr);
             }
 
-            // Reset for next command
             string_free(&command);
             cursor = 0;
             current_command_index = -1;
             editing_history = false;
 
-            // Ensure line is not empty for next prompt
             clrtoeol();
             break;
         case UP_ARROW:
@@ -348,7 +335,6 @@ int main()
         default:
             if (editing_history)
             {
-                // About to modify a command from history → make a copy to avoid destructive changes
                 String copy = {0};
                 copy.data = malloc(command.count);
                 ASSERT(copy.data, "no memory");
@@ -372,7 +358,6 @@ int main()
     refresh();
     endwin();
 
-    // Clean up
     for (size_t i = 0; i < command_history.count; i++)
         string_free(&command_history.data[i]);
     free(command_history.data);

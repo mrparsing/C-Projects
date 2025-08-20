@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-// MD5 rotation amounts (per round)
 static const uint32_t s[] = {
     7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
     5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20,
@@ -11,7 +10,6 @@ static const uint32_t s[] = {
     6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21
 };
 
-// MD5 constants derived from sin() function
 static const uint32_t K[] = {
     // floor(2^32 × abs(sin(i + 1)))
     0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
@@ -32,52 +30,44 @@ static const uint32_t K[] = {
     0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
 };
 
-// Left-rotate a 32-bit value x by c bits
 #define LEFTROTATE(x, c) (((x) << (c)) | ((x) >> (32 - (c))))
 
-// Adds MD5 padding to the message.
-// Returns the new message buffer and sets new_len to its length.
 uint8_t *md5_pad(const uint8_t *msg, size_t len, size_t *new_len)
 {
-    // Pad so that final length (in bits) is congruent to 448 mod 512
     size_t padded_len = len + 1;
     while (padded_len % 64 != 56)
     {
         padded_len++;
     }
 
-    padded_len += 8; // Space for original message length (in bits)
+    padded_len += 8;
 
-    uint8_t *padded = calloc(padded_len, 1); // Zero-filled
+    uint8_t *padded = calloc(padded_len, 1);
     memcpy(padded, msg, len);
-    padded[len] = 0x80; // Append '1' bit (10000000 in binary)
+    padded[len] = 0x80;
 
     uint64_t bit_len = len * 8;
-    memcpy(padded + padded_len - 8, &bit_len, 8); // Little-endian length
+    memcpy(padded + padded_len - 8, &bit_len, 8);
 
     *new_len = padded_len;
     return padded;
 }
 
-// MD5 main function: computes digest for a message of given length
 void md5(const uint8_t *initial_msg, size_t len, uint8_t digest[16])
 {
     size_t new_len;
-    uint8_t *msg = md5_pad(initial_msg, len, &new_len); // Step 1: pad message
+    uint8_t *msg = md5_pad(initial_msg, len, &new_len);
 
-    // Step 2: initialize hash buffer
     uint32_t A = 0x67452301;
     uint32_t B = 0xefcdab89;
     uint32_t C = 0x98badcfe;
     uint32_t D = 0x10325476;
 
-    // Step 3: process message in 512-bit (64-byte) chunks
     for (size_t offset = 0; offset < new_len; offset += 64)
     {
-        uint32_t *w = (uint32_t *)(msg + offset); // Interpret chunk as 16 32-bit words
+        uint32_t *w = (uint32_t *)(msg + offset);
         uint32_t a = A, b = B, c = C, d = D;
 
-        // Main loop: 64 operations
         for (int i = 0; i < 64; i++)
         {
             uint32_t f, g;
@@ -106,12 +96,10 @@ void md5(const uint8_t *initial_msg, size_t len, uint8_t digest[16])
             uint32_t temp = d;
             d = c;
             c = b;
-            // Perform the transformation and rotate
             b = b + LEFTROTATE((a + f + K[i] + w[g]), s[i]);
             a = temp;
         }
 
-        // Add this chunk's hash to result
         A += a;
         B += b;
         C += c;
@@ -120,26 +108,23 @@ void md5(const uint8_t *initial_msg, size_t len, uint8_t digest[16])
 
     free(msg);
 
-    // Output the final digest in little-endian order
     memcpy(digest + 0, &A, 4);
     memcpy(digest + 4, &B, 4);
     memcpy(digest + 8, &C, 4);
     memcpy(digest + 12, &D, 4);
 }
 
-// Simple main function for testing
 int main()
 {
     char buf[1024];
 
     printf("Enter a message: ");
     fgets(buf, sizeof(buf), stdin);
-    buf[strcspn(buf, "\n")] = '\0'; // Remove newline if present
+    buf[strcspn(buf, "\n")] = '\0';
 
     uint8_t out[16];
     md5((const uint8_t *)buf, strlen(buf), out);
 
-    // Print digest as hexadecimal string
     for (int i = 0; i < 16; i++)
         printf("%02x", out[i]);
     printf("\n");

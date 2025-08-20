@@ -294,7 +294,6 @@ int main()
     float star_radius = 0.03f;
     float move_speed = 0.005f;
 
-    // Variabile per gestire il toggle del tasto
     int togglePressed = 0;
 
     while (!glfwWindowShouldClose(window))

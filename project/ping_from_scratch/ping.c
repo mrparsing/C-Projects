@@ -40,7 +40,6 @@ typedef struct {
     u8 *payload;
 } icmp_packet;
 
-// === UTILS ===
 void dumphex(u8 *buf, u16 len, u8 newline) {
     for (u16 i = 0; i < len; i++)
         printf("%02x ", buf[i]);
@@ -68,7 +67,6 @@ u16 compute_checksum(u8 *data, u16 len) {
     return ~((u16)sum);
 }
 
-// === ICMP LOGIC ===
 icmp_packet *create_icmp(icmp_kind kind, const u8 *data, u16 len, u16 id, u16 seq) {
     icmp_packet *pkt = malloc(sizeof(icmp_packet));
     assert(pkt);
@@ -88,7 +86,7 @@ u8 *serialize_icmp(icmp_packet *pkt, u16 *out_len) {
     if (!pkt || !pkt->payload) return NULL;
 
     u16 total_len = sizeof(struct raw_icmp) + pkt->length;
-    if (total_len % 2 != 0) total_len++; // padding
+    if (total_len % 2 != 0) total_len++;
 
     u8 *mem = malloc(total_len);
     assert(mem);
@@ -140,7 +138,6 @@ void display_icmp(icmp_packet *pkt) {
     dumphex(pkt->payload, pkt->length, 1);
 }
 
-// === MAIN TEST ===
 int main() {
     const char *msg = "Hello!";
     icmp_packet *pkt = create_icmp(ICMP_ECHO, (const u8 *)msg, strlen(msg), 42, 1);

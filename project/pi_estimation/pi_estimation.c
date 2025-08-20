@@ -15,7 +15,6 @@ struct Point {
     double y;
 };
 
-// Draw the outline of a circle centered in the window
 void generate_circle(SDL_Surface *surface) {
     for (int i = 0; i < WIDTH; i++) {
         for (int j = 0; j < HEIGHT; j++) {
@@ -23,7 +22,6 @@ void generate_circle(SDL_Surface *surface) {
             double dy = j - HEIGHT / 2;
             double distance = sqrt(dx * dx + dy * dy);
 
-            // Draw the circle border with thickness tolerance
             if (distance >= R - 1 && distance <= R + 1) {
                 SDL_Rect pixel = {i, j, 1, 1};
                 SDL_FillRect(surface, &pixel, COLOR_WHITE);
@@ -32,18 +30,15 @@ void generate_circle(SDL_Surface *surface) {
     }
 }
 
-// Draw a single white pixel at floating-point coordinates
 void print_point(SDL_Surface *surface, double dx, double dy) {
     SDL_Rect pixel = {(int)dx, (int)dy, 1, 1};
     SDL_FillRect(surface, &pixel, COLOR_WHITE);
 }
 
-// Generate random points and count how many fall inside the circle
 void generate_random_point(SDL_Surface *surface) {
     int counter = 0;
 
     for (int i = 0; i < NUM_POINTS; i++) {
-        // Generate a point in the square surrounding the circle (from -R to R)
         double x = ((double)rand() / RAND_MAX) * 2 * R - R;
         double y = ((double)rand() / RAND_MAX) * 2 * R - R;
 
@@ -51,20 +46,18 @@ void generate_random_point(SDL_Surface *surface) {
         if (distance <= R)
             counter++;
 
-        // Translate coordinates to the window center
         double dx = x + WIDTH / 2;
         double dy = y + HEIGHT / 2;
 
         print_point(surface, dx, dy);
     }
 
-    // Monte Carlo estimation of pi
     double pi_estimation = 4.0 * counter / NUM_POINTS;
     printf("PI estimation: %f\n", pi_estimation);
 }
 
 int main() {
-    srand(time(NULL)); // Seed the random number generator once
+    srand(time(NULL));
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "SDL_Init error: %s\n", SDL_GetError());
@@ -79,12 +72,11 @@ int main() {
 
     SDL_Surface *surface = SDL_GetWindowSurface(window);
 
-    generate_circle(surface);       // Draw the circle border
-    generate_random_point(surface); // Plot random points and estimate π
+    generate_circle(surface);
+    generate_random_point(surface);
 
     SDL_UpdateWindowSurface(window);
 
-    // Event loop to keep the window open until the user closes it
     int running = 1;
     SDL_Event e;
     while (running) {

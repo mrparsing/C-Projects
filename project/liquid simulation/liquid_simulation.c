@@ -12,17 +12,15 @@
 #define ROWS HEIGHT / CELL_SIZE
 #define COLUMNS WIDTH / CELL_SIZE
 
-// Single cell of the grid: holds what type it is and how much water is inside.
 struct Cell
 {
-    int type;              // WATER_TYPE or SOLID_TYPE
-    double fill_level;     // 0.0 (empty) .. 1.0 (full)
-    int x;                 // column index
-    int y;                 // row index
-    int flowing_down;      // unused flag (kept for future features)
+    int type;
+    double fill_level;
+    int x;
+    int y;
+    int flowing_down;
 };
 
-// Not used in current logic, kept for potential extension
 struct CellFlow
 {
     double flow_left;
@@ -31,22 +29,18 @@ struct CellFlow
     double flow_down;
 };
 
-// Convert (x, y) to linear index in the array
 static inline int idx(int x, int y) { return x + y * COLUMNS; }
 
-// Clamp a double between two bounds
 static inline double clampd(double v, double lo, double hi) {
     if (v < lo) return lo;
     if (v > hi) return hi;
     return v;
 }
 
-// Draw the grid lines for visualization
 void draw_grid(SDL_Surface *surface, Uint32 color)
 {
     SDL_Rect line;
 
-    // Vertical lines
     for (int x = 0; x <= WIDTH; x += CELL_SIZE)
     {
         line.x = x;
@@ -56,7 +50,6 @@ void draw_grid(SDL_Surface *surface, Uint32 color)
         SDL_FillRect(surface, &line, color);
     }
 
-    // Horizontal lines
     for (int y = 0; y <= HEIGHT; y += CELL_SIZE)
     {
         line.x = 0;
@@ -67,7 +60,6 @@ void draw_grid(SDL_Surface *surface, Uint32 color)
     }
 }
 
-// Render a single cell (background + water or solid)
 void draw_cell(SDL_Surface *surface, struct Cell cellData)
 {
     SDL_Rect rect;
@@ -76,12 +68,10 @@ void draw_cell(SDL_Surface *surface, struct Cell cellData)
     rect.w = CELL_SIZE;
     rect.h = CELL_SIZE;
 
-    // White background
     Uint32 color = SDL_MapRGB(surface->format, 255, 255, 255);
     SDL_FillRect(surface, &rect, color);
 
     if (cellData.type == WATER_TYPE) {
-        // Determine water height (scaled by fill level)
         int water_height = (cellData.fill_level >= 1.0) ? CELL_SIZE : (int)(cellData.fill_level * CELL_SIZE);
         if (water_height > 0) {
             int empty_height = CELL_SIZE - water_height;
@@ -90,13 +80,11 @@ void draw_cell(SDL_Surface *surface, struct Cell cellData)
             SDL_FillRect(surface, &water, color);
         }
     } else if (cellData.type == SOLID_TYPE) {
-        // Solid blocks are black
         color = SDL_MapRGB(surface->format, 0, 0, 0);
         SDL_FillRect(surface, &rect, color);
     }
 }
 
-// Initialize every cell as empty water type
 void initialize_environment(struct Cell world[NUM_CELL])
 {
     for (int i = 0; i < ROWS; i++)
@@ -108,7 +96,6 @@ void initialize_environment(struct Cell world[NUM_CELL])
     }
 }
 
-// Draw the whole environment
 void draw_environment(SDL_Surface *surface, struct Cell environemnt[NUM_CELL])
 {
     for (int i = 0; i < NUM_CELL; i++)
@@ -116,7 +103,6 @@ void draw_environment(SDL_Surface *surface, struct Cell environemnt[NUM_CELL])
         draw_cell(surface, environemnt[i]);
     }
 
-    // Extra pass for a small visual effect when two full water cells touch vertically
     for (int i = 0; i < ROWS; i++)
     {
         for (int j = 0; j < COLUMNS; j++)
@@ -134,13 +120,11 @@ void draw_environment(SDL_Surface *surface, struct Cell environemnt[NUM_CELL])
     }
 }
 
-// Simple gravity step: move water down if there's free space
 void simulation_gravity(struct Cell grid[NUM_CELL])
 {
     struct Cell grid_next[NUM_CELL];
     memcpy(grid_next, grid, sizeof(grid_next));
 
-    // From bottom-1 to top helps a bit with stability
     for (int y = ROWS - 2; y >= 0; --y) {
         for (int x = 0; x < COLUMNS; ++x) {
             int src_i = idx(x, y);
@@ -160,14 +144,12 @@ void simulation_gravity(struct Cell grid[NUM_CELL])
         }
     }
 
-    // Final clamp
     for (int i = 0; i < NUM_CELL; ++i) {
         grid_next[i].fill_level = clampd(grid_next[i].fill_level, 0.0, 1.0);
         grid[i] = grid_next[i];
     }
 }
 
-// Spread water horizontally when it's not falling
 void spreading_water(struct Cell grid[NUM_CELL])
 {
     struct Cell grid_next[NUM_CELL];
@@ -216,7 +198,6 @@ void spreading_water(struct Cell grid[NUM_CELL])
     }
 }
 
-// Push excess water upwards (when a cell is overfilled > 1.0)
 void upwards_water(struct Cell grid[NUM_CELL])
 {
     struct Cell grid_next[NUM_CELL];
@@ -247,7 +228,6 @@ void upwards_water(struct Cell grid[NUM_CELL])
     }
 }
 
-// Single simulation step combining gravity + lateral spread + vertical push
 void simulation(struct Cell grid[NUM_CELL])
 {
     simulation_gravity(grid);
@@ -271,7 +251,6 @@ int main()
 
     SDL_Surface *surface = SDL_GetWindowSurface(window);
 
-    // Map colors in the surface format
     Uint32 color_gray = SDL_MapRGB(surface->format, 130, 130, 130);
     Uint32 color_black = SDL_MapRGB(surface->format, 0, 0, 0);
     Uint32 color_white = SDL_MapRGB(surface->format, 255, 255, 255);
@@ -287,7 +266,6 @@ int main()
 
     while (running)
     {
-        // Event handling
         while (SDL_PollEvent(&event))
         {
             if (event.type == SDL_QUIT)
@@ -333,7 +311,6 @@ int main()
 
         draw_environment(surface, world);
         draw_grid(surface, color_gray);
-        // Update window contents
         SDL_UpdateWindowSurface(window);
         SDL_Delay(10);
     }

@@ -11,7 +11,7 @@
 #define REST_SIDE 0.7
 #define REST_BALL 0.6
 #define RADIUS 10.0
-#define MAX_BALLS 200 // Maximum number of balls allowed
+#define MAX_BALLS 200
 
 typedef struct
 {
@@ -122,7 +122,6 @@ void apply_gravity(CircleArray *circles, double dt)
     }
 }
 
-// Resolve collisions with walls and floor
 void resolve_walls_and_floor(CircleArray *circles)
 {
     for (size_t i = 0; i < circles->used; ++i)
@@ -132,12 +131,10 @@ void resolve_walls_and_floor(CircleArray *circles)
         {
             circles->array[i].y = HEIGHT - circles->array[i].r;
             if (circles->array[i].vy > 0)
-            {                               // Only if falling
-                circles->array[i].vy = 0.0; // Stop vertical velocity
+            {
+                circles->array[i].vy = 0.0;
             }
-            // Apply horizontal friction
             circles->array[i].vx *= 0.9;
-            // Stop if velocities are very low
             if (fabs(circles->array[i].vx) < 1.0 && fabs(circles->array[i].vy) < 1.0)
             {
                 circles->array[i].vx = 0.0;
@@ -162,7 +159,6 @@ void resolve_walls_and_floor(CircleArray *circles)
     }
 }
 
-// Resolve ball-ball collisions
 void resolve_ball_ball_collisions(CircleArray *circles)
 {
     for (size_t k = 0; k < circles->used; ++k)
@@ -191,7 +187,7 @@ void resolve_ball_ball_collisions(CircleArray *circles)
                 dist = 0.0;
             }
 
-            double penetration = fmin(minDist - dist + 0.001, 1.0); // max 1px push
+            double penetration = fmin(minDist - dist + 0.001, 1.0);
             double half = penetration * 1.0;
 
             double mass_k = circles->array[k].snapped ? 100.0 : 1.0;
@@ -314,7 +310,6 @@ void draw_slot(SDL_Surface *surface)
     }
 }
 
-// Ball-line collision detection - FIXED VERSION
 int ballLineCollision(double cx, double cy, double r, double lineX, double y1, double y2)
 {
     if (y1 > y2)
@@ -324,26 +319,21 @@ int ballLineCollision(double cx, double cy, double r, double lineX, double y1, d
         y2 = tmp;
     }
 
-    // Calculate distance to line
     double distX = fabs(cx - lineX);
 
-    // If ball is too far horizontally, no collision
     if (distX > r)
         return 0;
 
-    // Project ball center onto the line segment
     double projY = cy;
     if (projY < y1)
         projY = y1;
     if (projY > y2)
         projY = y2;
 
-    // Calculate distance to projected point
     double dx = cx - lineX;
     double dy = cy - projY;
     double dist2 = dx * dx + dy * dy;
 
-    // Check if distance is within radius
     return (dist2 <= r * r);
 }
 
@@ -360,7 +350,6 @@ void check_line_collisions(CircleArray *circles)
                 double overlap = circles->array[i].r - fabs(circles->array[i].x - x);
                 if (overlap > 0)
                 {
-                    // Push ball away from the line
                     if (circles->array[i].x < x)
                     {
                         circles->array[i].x -= overlap * 0.5;
@@ -370,7 +359,6 @@ void check_line_collisions(CircleArray *circles)
                         circles->array[i].x += overlap * 0.5;
                     }
 
-                    // Only bounce if ball is moving toward the line
                     double vx = circles->array[i].vx;
                     if ((vx > 0 && circles->array[i].x < x) ||
                         (vx < 0 && circles->array[i].x > x))
@@ -393,14 +381,14 @@ int main(void)
     initArray(&circles, 100);
     ObstacleArray obstacles;
     initObstacles(&obstacles, 100);
-    create_obstacles(&obstacles); // Create obstacles once
+    create_obstacles(&obstacles);
 
     int running = 1, mouseDown = 0;
     double spawn_ball_accum = 0.0;
     const double spawn_interval = 0.06;
     SDL_Event e;
     Uint32 prev_ticks = SDL_GetTicks();
-    int auto_spawn_count = 200; // Numero di palline da spawnare
+    int auto_spawn_count = 200;
     double auto_spawn_timer = 0.0;
     const double auto_spawn_interval = 0.15;
 
@@ -409,7 +397,7 @@ int main(void)
         Uint32 now = SDL_GetTicks();
         double dt = (now - prev_ticks) / 1000.0;
         if (dt > 0.05)
-            dt = 0.05; // massimo 50 ms per tick
+            dt = 0.05;
         prev_ticks = now;
 
         while (SDL_PollEvent(&e))
@@ -435,8 +423,7 @@ int main(void)
             {
                 auto_spawn_timer = 0.0;
 
-                // Crea una pallina al centro in alto con piccola variazione casuale
-                double x = WIDTH / 2 + (rand() % 20 - 10); // -10 a +10 pixel
+                double x = WIDTH / 2 + (rand() % 20 - 10);
                 Circle c = {x, -30, RADIUS, 0.0, 0.0, 0};
                 insertCircle(&circles, c);
 
@@ -464,7 +451,6 @@ int main(void)
         apply_gravity(&circles, dt);
         SDL_FillRect(surface, NULL, COLOR_BLACK);
 
-        // Collision resolution with multiple iterations
         for (int iter = 0; iter < circles.used / 2; iter++)
         {
             resolve_walls_and_floor(&circles);
@@ -473,7 +459,6 @@ int main(void)
             resolve_ball_ball_collisions(&circles);
         }
 
-        // Draw everything
         draw_obstacles(surface, &obstacles);
         draw_slot(surface);
         for (size_t i = 0; i < circles.used; i++)

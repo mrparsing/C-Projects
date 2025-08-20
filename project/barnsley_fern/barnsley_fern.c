@@ -7,38 +7,32 @@
 #define HEIGHT 600
 #define ITERATION 200000
 
-// Map a floating-point x coordinate from fern space to screen space
 static inline int mapx(double x){
     const double xmin = -2.1820, xmax = 2.6558;
     return (int)((x - xmin) / (xmax - xmin) * (WIDTH - 1));
 }
 
-// Map a floating-point y coordinate from fern space to screen space (flipped)
 static inline int mapy(double y){
     const double ymin = 0.0, ymax = 9.9983;
     return HEIGHT - 1 - (int)((y - ymin) / (ymax - ymin) * (HEIGHT - 1));
 }
 
-// Put a pixel on the SDL surface at (x, y) with a given color
 static inline void putpixel(SDL_Surface *s, int x, int y, Uint32 color){
     Uint32 *pixels = (Uint32 *)s->pixels;
     pixels[y * (s->pitch / 4) + x] = color;
 }
 
-// Generate and draw the Barnsley Fern
 void draw_barnsley(SDL_Surface *surface){
     double x = 0.0, y = 0.0;
     Uint32 white = SDL_MapRGBA(surface->format, 255, 255, 255, 255);
 
-    // Clear the surface (black background)
     SDL_FillRect(surface, NULL, SDL_MapRGBA(surface->format, 0, 0, 0, 255));
-    SDL_LockSurface(surface);  // Lock for direct pixel access
+    SDL_LockSurface(surface);
 
     for (int i = 0; i < ITERATION; ++i){
         double nx, ny;
         int r = rand() % 100;
 
-        // Apply one of the 4 affine transformations based on probability
         if (r < 1){
             nx = 0;
             ny = 0.16 * y;
@@ -53,11 +47,9 @@ void draw_barnsley(SDL_Surface *surface){
             ny = 0.26 * x + 0.24 * y + 0.44;
         }
 
-        // Update point
         x = nx;
         y = ny;
 
-        // Convert to pixel coordinates and draw
         int px = mapx(x);
         int py = mapy(y);
         if (px >= 0 && px < WIDTH && py >= 0 && py < HEIGHT)
@@ -68,7 +60,7 @@ void draw_barnsley(SDL_Surface *surface){
 }
 
 int main(void){
-    srand((unsigned)time(NULL)); // Seed the random number generator
+    srand((unsigned)time(NULL));
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0){
         fprintf(stderr, "SDL_Init error: %s\n", SDL_GetError());
@@ -97,7 +89,6 @@ int main(void){
     draw_barnsley(surf);
     SDL_UpdateWindowSurface(win);
 
-    // Event loop to keep the window open
     SDL_Event e;
     int running = 1;
     while (running){
@@ -105,7 +96,7 @@ int main(void){
             if (e.type == SDL_QUIT)
                 running = 0;
         }
-        SDL_Delay(16); // ~60 FPS idle loop
+        SDL_Delay(16);
     }
 
     SDL_DestroyWindow(win);
