@@ -85,6 +85,13 @@ typedef enum
     EXECUTE_TABLE_FULL
 } ExecuteResult;
 
+typedef struct
+{
+    Table *table;
+    uint32_t row_num;
+    bool end_of_table;
+} Cursor;
+
 /* ======== DECLARATIONS ======== */
 
 InputBuffer *new_input_buffer();
