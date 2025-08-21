@@ -1,6 +1,6 @@
 # C Projects — Learn by Building
 
-I created this repository as a collection of C projects to help you practice, experiment, and understand the C language. Each focuses on a specific aspect, such as graphics, algorithms, or memory management, and I've ranked them by difficulty on a scale of 1 to 5 stars.
+I created this repository as a collection of C projects to help you practice, experiment, and master the C language. Each focuses on a specific aspect, such as graphics, algorithms, or memory management, and I've ranked them by difficulty on a scale of 1 to 5 stars.
 
 This repository is still under development, so I'll be adding new projects from time to time. If you'd like to contribute, suggest ideas, or report any bugs, feel free to file a bug report or submit a pull request—I'm open to anything.
 
