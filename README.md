@@ -1,17 +1,8 @@
-# 🧠 C Projects — Learn by Building
+# C Projects — Learn by Building
 
-This repository contains a collection of **small C projects** designed to help you **practice, experiment, and understand** core programming concepts in C.
+I created this repository as a collection of C projects to help you practice, experiment, and understand the C language. Each focuses on a specific aspect, such as graphics, algorithms, or memory management, and I've ranked them by difficulty on a scale of 1 to 5 stars.
 
-Each project has a specific purpose (graphics, algorithms, memory handling, etc.) and is categorized by **difficulty level (⭐ 1 – 5)** taken from the internal pagella.
-
----
-
-## 📚 Goals
-
-- Improve your understanding of the C language.  
-- Train your algorithmic thinking and manual memory-management skills.  
-- Explore concepts like 2D graphics, physics simulation, data structures, and more.  
-- Prepare for exams, coding challenges, or just learn for fun.  
+This repository is still under development, so I'll be adding new projects from time to time. If you'd like to contribute, suggest ideas, or report any bugs, feel free to file a bug report or submit a pull request—I'm open to anything.
 
 ---
 
@@ -93,11 +84,3 @@ Each project has a specific purpose (graphics, algorithms, memory handling, etc.
 - **[Liquid simulation](./project/liquid%20simulation/)** — A program that simulates water flowing through a grid of square cells using a very simple cellular model.
 - **[Black Hole Ray Simulator - 3D](./project/black_hole_ray_interaction_3D/)** — The project is a 3D black hole simulator visualizing light ray trajectories, gravitational distortions, and an accretion disk using OpenGL and GLFW. It enables real-time interaction with camera controls, predefined scenarios, and physical parameters like the Schwarzschild radius.
 - **[Black Hole Ray Tracer](./project/black_hole_light_interaction_3D/)** — The project simulates gravitational interactions between two stars and a central supermassive black hole, using ray tracing to render light bending according to the Schwarzschild metric of general relativity. It features interactive camera controls (orbit, pan, zoom), a deformable spacetime grid, an accretion disk, and options to pause physics or toggle the grid visibility.
-
----
-
-# 🚧 Work in Progress
-
-This repository is a work in progress. New projects will be added over time.
-
-Feel free to open an issue or pull request if you want to contribute, suggest ideas, or report bugs.
