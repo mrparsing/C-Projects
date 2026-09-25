@@ -25,7 +25,7 @@ This repository is still under development, so I'll be adding new projects from 
 - **[Number Base Converter](./project/base_converter/)** — A command-line tool written in C to convert numbers between Decimal, Binary, and Hexadecimal systems.
 - **[Word and Character Counter](./project/word_counter/)** — A program that reads a text file and counts the number of **words** and the number of **characters**.
 - **[Binary Search](./project/binary_search/)** — A binary search implementation.
-
+- **[Cat](./project/cat/)** — Cat command from scratch
 ---
 
 ### ⭐⭐☆☆☆ (2 / 5)
